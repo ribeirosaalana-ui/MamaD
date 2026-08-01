@@ -225,8 +225,43 @@
 </head>
 <body>
 <div class="layout">
-  <aside class="sidebar" id="sidebar" style="background:#0f1120!important">
-    <!-- sidebar preenchida por buildSidebar() no shared.js -->
+  <aside class="sidebar" id="sidebar">
+    <button class="sidebar-close-btn" onclick="toggleSidebar()"><i class="fa-solid fa-xmark"></i></button>
+    <div class="sb-logo">
+      <div class="sb-logo-icon"><i class="fa-solid fa-bowl-food"></i></div>
+      <div class="sb-logo-name">Mama<span>Food</span></div>
+    </div>
+    <div class="sb-store">
+      <div class="sb-store-avatar" id="sb-avatar" style="width:48px;height:48px;border-radius:12px;background:#e53e3e;display:flex;align-items:center;justify-content:center;font-size:1.2rem;font-weight:900;color:#fff;flex-shrink:0">?</div>
+      <div>
+        <div class="sb-store-name" id="sb-nome">Carregando...</div>
+        <div class="sb-store-addr" id="sb-email"></div>
+      </div>
+    </div>
+    <nav class="sb-nav">
+      <div class="sb-section">Menu</div>
+      <a class="sb-item" href="cardapio.html"><i class="fa-solid fa-utensils sb-item-icon"></i><span>Cardápio</span></a>
+      <a class="sb-item" href="meus-pedidos.html"><i class="fa-solid fa-receipt sb-item-icon"></i><span>Meus Pedidos</span></a>
+      <a class="sb-item" href="taxa-entrega.html"><i class="fa-solid fa-motorcycle sb-item-icon"></i><span>Taxa e Entrega</span></a>
+      <div class="sb-section">Recursos</div>
+      <a class="sb-item" href="promocoes.html"><i class="fa-solid fa-tags sb-item-icon"></i><span>Promoções</span></a>
+      <a class="sb-item" href="favoritos.html"><i class="fa-solid fa-heart sb-item-icon"></i><span>Favoritos</span></a>
+      <a class="sb-item" href="avaliacoes.html"><i class="fa-solid fa-star sb-item-icon"></i><span>Avaliações</span></a>
+      <a class="sb-item" href="notificacoes.html"><i class="fa-solid fa-bell sb-item-icon"></i><span>Notificações</span></a>
+      <a class="sb-item" href="suporte.html"><i class="fa-solid fa-headset sb-item-icon"></i><span>Suporte</span></a>
+      <div class="sb-section">Admin</div>
+      <a class="sb-item" href="admin.html"><i class="fa-solid fa-shield-halved sb-item-icon"></i><span>Painel Admin</span></a>
+      <a class="sb-item active" href="pedidos.html"><i class="fa-solid fa-bag-shopping sb-item-icon"></i><span>Pedidos</span></a>
+      <a class="sb-item" href="historico.html"><i class="fa-solid fa-clock-rotate-left sb-item-icon"></i><span>Histórico</span></a>
+      <a class="sb-item" href="cardapio-criar.html"><i class="fa-solid fa-plus-circle sb-item-icon"></i><span>Cardápio Criar</span></a>
+      <div class="sb-section">Conta</div>
+      <a class="sb-item" href="perfil.html"><i class="fa-solid fa-store sb-item-icon"></i><span>Meu Perfil</span></a>
+    </nav>
+    <div class="sb-footer">
+      <div class="sb-logout" onclick="logout()">
+        <i class="fa-solid fa-right-from-bracket"></i> Sair da conta
+      </div>
+    </div>
   </aside>
   <div class="main">
 
