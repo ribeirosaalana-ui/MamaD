@@ -39,46 +39,13 @@
 
 
 // ── .env / ADMIN_EMAILS ───────────────────────────────────────────
-// Fallback hardcoded — funciona mesmo sem fetch
+// Hardcoded — garante funcionamento mesmo sem fetch
 var ADMIN_EMAILS = ['francimarjuniorr435@gmail.com'];
-var _envLoaded   = false;
+var _envLoaded   = true; // Sempre true, não precisa carregar .env
 
 function loadEnv(cb) {
-  console.log('🔄 loadEnv() iniciado, _envLoaded:', _envLoaded);
-  if (_envLoaded) { 
-    console.log('✅ .env já carregado, ADMIN_EMAILS:', ADMIN_EMAILS);
-    cb(); 
-    return; 
-  }
-  var tried = 0;
-  var paths  = ['../../.env', '../.env', '/.env', '.env'];
-  function tryPath(i) {
-    if (i >= paths.length) { 
-      console.warn('⚠️ .env não encontrado em nenhum path, usando fallback:', ADMIN_EMAILS);
-      _envLoaded = true; 
-      cb(); 
-      return; 
-    }
-    console.log('🔍 Tentando carregar:', paths[i]);
-    fetch(paths[i] + '?t=' + Date.now())
-      .then(function(r){ return r.ok ? r.text() : Promise.reject('not ok'); })
-      .then(function(txt){
-        console.log('✅ .env carregado de', paths[i], 'conteúdo:', txt.substring(0, 100));
-        var m = txt.match(/^ADMIN_EMAILS\s*=\s*([^\r\n]+)/m);
-        if (m) {
-          ADMIN_EMAILS = m[1].trim().split(',').map(function(e){
-            return e.trim().toLowerCase();
-          }).filter(Boolean);
-          console.log('📧 ADMIN_EMAILS extraídos:', ADMIN_EMAILS);
-        }
-        _envLoaded = true; cb();
-      })
-      .catch(function(err){ 
-        console.log('❌ Falha ao carregar', paths[i], err);
-        tryPath(i + 1); 
-      });
-  }
-  tryPath(0);
+  // Admin email está hardcoded, executa callback direto
+  if (cb) cb();
 }
 
 // ── Parceiro ──────────────────────────────────────────────────────
@@ -92,49 +59,34 @@ function isAdmin(){
 
 // ── Auth guard ────────────────────────────────────────────────────
 function authGuard(adminOnly, cb) {
-  console.log('🚪 authGuard() iniciado, adminOnly:', adminOnly);
   var p = getParceiro();
-  console.log('👤 Parceiro encontrado:', p);
   
   if (!p || !p.email || !p.nome) { 
-    console.log('❌ Sem parceiro válido no localStorage, redirecionando para Tela1');
-    // Limpa dados inconsistentes antes de redirecionar
     localStorage.removeItem('mf_sessao_ativa');
     localStorage.removeItem('mf_parceiro');
-    
-    // Previne loop infinito: só redireciona se não estiver já na Tela1
     if (window.location.pathname.indexOf('Tela1.html') === -1) {
       window.location.href = 'Tela1.html';
     }
     return; 
   }
-  console.log('👤 Parceiro encontrado:', p);
-  console.log('📧 Email do parceiro:', p.email);
   
-  loadEnv(function(){
-    console.log('🏗️ Chamando buildSidebar...');
-    buildSidebar(window.location.pathname.split('/').pop());
-    startClock('clock');
-    
-    console.log('🔐 Verificando se é admin... adminOnly=', adminOnly, 'isAdmin()=', isAdmin());
-    
-    if (adminOnly && !isAdmin()) {
-      console.log('🔒 Acesso negado: página admin-only mas usuário não é admin');
-      console.log('📧 Email do usuário:', p.email);
-      console.log('📧 ADMIN_EMAILS:', ADMIN_EMAILS);
-      var main = document.querySelector('.main');
-      if (main) main.innerHTML =
-        '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:16px;padding:40px;text-align:center">' +
-        '<i class="fa-solid fa-lock" style="font-size:3rem;color:#ea1d2c"></i>' +
-        '<h2 style="font-family:Inter,sans-serif;color:#18181b">Acesso restrito</h2>' +
-        '<p style="color:#71717a;font-family:Inter,sans-serif">Apenas administradores podem acessar esta página.</p>' +
-        '<p style="color:#71717a;font-family:Inter,sans-serif;font-size:0.85rem">Seu email: ' + p.email + '</p>' +
-        '<a href="Tela2.html" style="color:#ea1d2c;font-weight:700;font-family:Inter,sans-serif">← Voltar ao painel</a></div>';
-      return;
-    }
-    console.log('✅ authGuard completo, executando callback da página');
-    if (cb) cb();
-  });
+  // Constrói sidebar imediatamente (email admin já está hardcoded)
+  buildSidebar(window.location.pathname.split('/').pop());
+  startClock('clock');
+  
+  if (adminOnly && !isAdmin()) {
+    var main = document.querySelector('.main');
+    if (main) main.innerHTML =
+      '<div style="display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:70vh;gap:16px;padding:40px;text-align:center">' +
+      '<i class="fa-solid fa-lock" style="font-size:3rem;color:#ea1d2c"></i>' +
+      '<h2 style="font-family:Inter,sans-serif;color:#18181b">Acesso restrito</h2>' +
+      '<p style="color:#71717a;font-family:Inter,sans-serif">Apenas administradores podem acessar esta página.</p>' +
+      '<p style="color:#71717a;font-family:Inter,sans-serif;font-size:0.85rem">Seu email: ' + p.email + '</p>' +
+      '<a href="Tela2.html" style="color:#ea1d2c;font-weight:700;font-family:Inter,sans-serif">← Voltar ao painel</a></div>';
+    return;
+  }
+  
+  if (cb) cb();
 }
 
 
