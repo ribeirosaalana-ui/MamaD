@@ -1,0 +1,522 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Avaliações</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../shared.css"/>
+  <style>
+    .rating-header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      border-radius: 20px;
+      padding: 40px;
+      text-align: center;
+      color: #fff;
+      margin-bottom: 32px;
+      position: relative;
+      overflow: hidden;
+    }
+    .rating-header::before {
+      content: '';
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      background: radial-gradient(circle, rgba(255,255,255,.15), transparent);
+      border-radius: 50%;
+      top: -100px;
+      right: -100px;
+    }
+    
+    .rating-big { font-size: 4rem; font-weight: 900; line-height: 1; margin-bottom: 8px; position: relative; }
+    .rating-stars { font-size: 2rem; color: #ffd700; margin-bottom: 12px; position: relative; }
+    .rating-sub { font-size: .95rem; opacity: .9; position: relative; }
+    
+    .review-list { display: flex; flex-direction: column; gap: 16px; }
+    
+    .review-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      transition: all .2s;
+      box-shadow: var(--shadow-xs);
+    }
+    .review-card:hover { box-shadow: var(--shadow-md); }
+    
+    .review-header {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 14px;
+    }
+    
+    .review-avatar {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, #667eea, #764ba2);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.2rem;
+      font-weight: 900;
+      flex-shrink: 0;
+    }
+    
+    .review-info { flex: 1; }
+    .review-name { font-size: .95rem; font-weight: 800; color: var(--dark); }
+    .review-date { font-size: .75rem; color: var(--gray-3); }
+    
+    .review-stars {
+      font-size: .9rem;
+      color: #ffd700;
+    }
+    
+    .review-text {
+      font-size: .88rem;
+      color: var(--gray-4);
+      line-height: 1.6;
+      margin-bottom: 12px;
+    }
+    
+    .review-imagem {
+      margin: 12px 0;
+      border-radius: 12px;
+      overflow: hidden;
+      max-width: 400px;
+    }
+    .review-imagem img {
+      width: 100%;
+      height: auto;
+      display: block;
+      cursor: pointer;
+      transition: transform .2s;
+    }
+    .review-imagem img:hover {
+      transform: scale(1.02);
+    }
+    
+    .review-footer {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+    }
+    
+    .review-like {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: .8rem;
+      color: var(--gray-3);
+      cursor: pointer;
+      transition: all .2s;
+      padding: 6px 12px;
+      border-radius: 8px;
+    }
+    .review-like:hover { background: var(--gray-1); color: var(--red); }
+    .review-like i { font-size: .85rem; }
+    
+    .btn-avaliar {
+      position: fixed;
+      bottom: 32px;
+      right: 32px;
+      background: linear-gradient(135deg, var(--red), #ff6b7a);
+      color: #fff;
+      padding: 16px 28px;
+      border-radius: 50px;
+      font-size: .95rem;
+      font-weight: 800;
+      box-shadow: 0 8px 24px var(--red-glow);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      border: none;
+      transition: all .2s;
+      z-index: 100;
+    }
+    .btn-avaliar:hover { transform: translateY(-2px); box-shadow: 0 12px 32px var(--red-glow); }
+    
+    @media (max-width: 768px) {
+      .rating-header { padding: 28px 20px; }
+      .rating-big { font-size: 3rem; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Avaliações</span><span class="topbar-sub"> — o que dizem sobre nós</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+    
+    <div class="content">
+      <!-- Rating Header -->
+      <div class="rating-header anim-fade-up">
+        <div class="rating-big">4.8</div>
+        <div class="rating-stars">
+          <i class="fa-solid fa-star"></i>
+          <i class="fa-solid fa-star"></i>
+          <i class="fa-solid fa-star"></i>
+          <i class="fa-solid fa-star"></i>
+          <i class="fa-solid fa-star-half-stroke"></i>
+        </div>
+        <div class="rating-sub">Baseado em 247 avaliações</div>
+      </div>
+      
+      <!-- Reviews -->
+      <div class="review-list" id="reviewList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Botão Flutuante -->
+<button class="btn-avaliar" onclick="abrirModalAvaliar()">
+  <i class="fa-solid fa-star"></i> Avaliar MamaFood
+</button>
+
+<!-- Modal de Avaliação -->
+<div id="modalAvaliar" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.7); z-index:9999; align-items:center; justify-content:center; backdrop-filter:blur(6px)">
+  <div style="background:var(--surface); border-radius:20px; width:90%; max-width:500px; padding:32px; position:relative; max-height:90vh; overflow-y:auto">
+    <button onclick="fecharModalAvaliar()" style="position:absolute; top:16px; right:16px; background:var(--gray-1); border:none; color:var(--gray-4); width:36px; height:36px; border-radius:50%; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:all .2s" onmouseover="this.style.background='var(--red-subtle)'; this.style.color='var(--red)'" onmouseout="this.style.background='var(--gray-1)'; this.style.color='var(--gray-4)'">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    
+    <h2 style="font-size:1.5rem; font-weight:900; color:var(--dark); margin-bottom:8px; display:flex; align-items:center; gap:10px">
+      <i class="fa-solid fa-star" style="color:var(--red)"></i> Avaliar MamaFood
+    </h2>
+    <p style="font-size:.88rem; color:var(--gray-3); margin-bottom:24px">Sua opinião é muito importante para nós!</p>
+    
+    <div class="ff" style="margin-bottom:20px">
+      <label style="font-size:.9rem; font-weight:700; color:var(--dark); margin-bottom:8px; display:block">Sua nota</label>
+      <div id="starsInput" style="display:flex; gap:8px; font-size:2rem; cursor:pointer">
+        <i class="fa-regular fa-star" data-nota="1" onclick="selecionarNota(1)"></i>
+        <i class="fa-regular fa-star" data-nota="2" onclick="selecionarNota(2)"></i>
+        <i class="fa-regular fa-star" data-nota="3" onclick="selecionarNota(3)"></i>
+        <i class="fa-regular fa-star" data-nota="4" onclick="selecionarNota(4)"></i>
+        <i class="fa-regular fa-star" data-nota="5" onclick="selecionarNota(5)"></i>
+      </div>
+      <input type="hidden" id="notaSelecionada" value="5"/>
+    </div>
+    
+    <div class="ff" style="margin-bottom:20px">
+      <label style="font-size:.9rem; font-weight:700; color:var(--dark); margin-bottom:8px; display:block">Seu comentário</label>
+      <textarea id="textoAvaliacao" placeholder="Conte-nos sua experiência..." style="width:100%; min-height:100px; padding:12px; border:1.5px solid var(--border); border-radius:10px; font-family:inherit; font-size:.9rem; resize:vertical" maxlength="500"></textarea>
+      <div style="font-size:.75rem; color:var(--gray-3); margin-top:4px; text-align:right">
+        <span id="charCount">0</span>/500
+      </div>
+    </div>
+    
+    <div class="ff" style="margin-bottom:24px">
+      <label style="font-size:.9rem; font-weight:700; color:var(--dark); margin-bottom:8px; display:block">Adicionar foto (opcional)</label>
+      <div style="border:2px dashed var(--border); border-radius:10px; padding:20px; text-align:center; cursor:pointer; transition:all .2s; background:var(--gray-1)" id="dropAreaAvaliacao" onclick="document.getElementById('fotoAvaliacao').click()">
+        <i class="fa-solid fa-image" style="font-size:2rem; color:var(--gray-3); display:block; margin-bottom:8px"></i>
+        <span style="font-size:.85rem; color:var(--gray-3)">Clique para adicionar uma foto</span>
+        <input type="file" id="fotoAvaliacao" accept="image/*" style="display:none" onchange="previewFotoAvaliacao(event)"/>
+      </div>
+      <div id="previewFotoAvaliacao" style="display:none; margin-top:12px; position:relative">
+        <img id="imgPreviewAvaliacao" src="" style="width:100%; border-radius:10px; border:1.5px solid var(--border)"/>
+        <button onclick="removerFotoAvaliacao()" style="position:absolute; top:8px; right:8px; background:rgba(0,0,0,.7); color:#fff; border:none; border-radius:50%; width:32px; height:32px; cursor:pointer; display:flex; align-items:center; justify-content:center">
+          <i class="fa-solid fa-xmark"></i>
+        </button>
+      </div>
+    </div>
+    
+    <button onclick="enviarAvaliacao()" style="width:100%; background:linear-gradient(135deg, var(--red), #ff6b7a); color:#fff; padding:14px; border-radius:12px; font-size:.95rem; font-weight:800; border:none; cursor:pointer; transition:all .2s; display:flex; align-items:center; justify-content:center; gap:10px" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px var(--red-glow)'" onmouseout="this.style.transform=''; this.style.boxShadow=''">
+      <i class="fa-solid fa-paper-plane"></i> Enviar Avaliação
+    </button>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="../AppJs/shared.js"></script>
+<script>
+function getAvaliacoes() {
+  var avaliacoes = JSON.parse(localStorage.getItem('mf_avaliacoes') || '[]');
+  
+  // Se não tiver avaliações, cria algumas iniciais
+  if (avaliacoes.length === 0) {
+    avaliacoes = [
+      { id: Date.now() + 1, nome: 'Carlos Silva', avatar: 'C', nota: 5, texto: 'Melhor hambúrguer da região! Ingredientes frescos e entrega super rápida. Recomendo demais!', data: 'Há 2 dias', likes: 24, imagem: null },
+      { id: Date.now() + 2, nome: 'Ana Paula', avatar: 'A', nota: 5, texto: 'A coxinha é PERFEITA! Crocante por fora e suculenta por dentro. Já virei cliente fiel 😋', data: 'Há 5 dias', likes: 18, imagem: null },
+      { id: Date.now() + 3, nome: 'João Pedro', avatar: 'J', nota: 4, texto: 'Muito bom! Só acho que poderia ter mais opções veganas no cardápio. Mas o que tem está delicioso.', data: 'Há 1 semana', likes: 12, imagem: null },
+      { id: Date.now() + 4, nome: 'Mariana Costa', avatar: 'M', nota: 5, texto: 'Atendimento impecável e comida maravilhosa. O combo família vale muito a pena!', data: 'Há 1 semana', likes: 31, imagem: null },
+      { id: Date.now() + 5, nome: 'Felipe Santos', avatar: 'F', nota: 5, texto: 'Peço toda semana e nunca me decepcionei. Qualidade nota 10! 🍔👏', data: 'Há 2 semanas', likes: 15, imagem: null },
+      { id: Date.now() + 6, nome: 'Juliana Alves', avatar: 'J', nota: 4, texto: 'Muito saboroso! A batata frita veio quentinha e crocante. Só demoraram um pouquinho mais que o esperado, mas valeu a pena.', data: 'Há 3 semanas', likes: 9, imagem: null }
+    ];
+    localStorage.setItem('mf_avaliacoes', JSON.stringify(avaliacoes));
+  }
+  
+  return avaliacoes.sort(function(a, b) { return b.id - a.id; });
+}
+
+function salvarAvaliacoes(avaliacoes) {
+  localStorage.setItem('mf_avaliacoes', JSON.stringify(avaliacoes));
+}
+
+// Gerar avaliação fake a cada 1 hora
+function gerarAvaliacaoFake() {
+  var nomes = [
+    'Roberto Lima', 'Patricia Souza', 'Lucas Oliveira', 'Camila Santos',
+    'Bruno Martins', 'Amanda Costa', 'Ricardo Alves', 'Fernanda Rocha',
+    'Gabriel Silva', 'Beatriz Ferreira', 'Rodrigo Mendes', 'Carolina Dias',
+    'Thiago Barbosa', 'Leticia Gomes', 'Marcelo Ribeiro', 'Vanessa Cardoso'
+  ];
+  
+  var textos = [
+    'Simplesmente perfeito! Melhor delivery da região sem dúvida! 🍕',
+    'Atendimento nota 10, comida deliciosa e entrega rápida. Recomendo!',
+    'Já é a terceira vez que peço e sempre vem impecável. Parabéns!',
+    'A qualidade dos ingredientes é visível. Vale cada centavo! 👏',
+    'Entrega antes do prazo e tudo quentinho. Adorei!',
+    'Pedi pelo app e chegou super rápido. Comida maravilhosa!',
+    'Melhor custo-benefício! Porções generosas e sabor incrível.',
+    'Virei cliente fiel! Não troco por nada. Sucesso merecido! ❤️',
+    'Experimentei vários itens do cardápio e todos estavam perfeitos!',
+    'Superou minhas expectativas! Voltarei a pedir com certeza.',
+    'Embalagem caprichada, comida quentinha. Excelente! 🔥',
+    'Equipe super atenciosa e comida espetacular. Parabéns!',
+    'Pedi para uma festa e todos adoraram! Muito obrigado!',
+    'A melhor coxinha que já comi na vida! Crocante e recheada.',
+    'Hambúrguer suculento, batata crocante. Tudo perfeito! 🍔'
+  ];
+  
+  var nome = nomes[Math.floor(Math.random() * nomes.length)];
+  var texto = textos[Math.floor(Math.random() * textos.length)];
+  var nota = Math.random() > 0.2 ? 5 : 4; // 80% nota 5, 20% nota 4
+  var likes = Math.floor(Math.random() * 20) + 5;
+  
+  var novaAvaliacao = {
+    id: Date.now(),
+    nome: nome,
+    avatar: nome.charAt(0),
+    nota: nota,
+    texto: texto,
+    data: 'Agora',
+    likes: likes,
+    imagem: null,
+    fake: true
+  };
+  
+  var avaliacoes = getAvaliacoes();
+  avaliacoes.unshift(novaAvaliacao);
+  salvarAvaliacoes(avaliacoes);
+  
+  console.log('🌟 Nova avaliação fake criada:', nome);
+  
+  // Atualiza a página se estiver aberta
+  if (document.getElementById('reviewList')) {
+    renderAvaliacoes();
+    showToast('✨ Nova avaliação recebida!', 'ok');
+  }
+}
+
+// Inicia timer de avaliações fake (1 hora = 3600000ms)
+setInterval(gerarAvaliacaoFake, 3600000);
+
+// Gera a primeira após 5 minutos (para teste)
+setTimeout(gerarAvaliacaoFake, 300000);
+
+function renderAvaliacoes() {
+  var reviews = getAvaliacoes();
+  var el = document.getElementById('reviewList');
+  
+  // Atualizar contador no header
+  var totalAvaliacoes = reviews.length;
+  var somaNotas = reviews.reduce(function(sum, r) { return sum + r.nota; }, 0);
+  var mediaNotas = totalAvaliacoes > 0 ? (somaNotas / totalAvaliacoes).toFixed(1) : '0.0';
+  
+  document.querySelector('.rating-big').textContent = mediaNotas;
+  document.querySelector('.rating-sub').textContent = 'Baseado em ' + totalAvaliacoes + ' avaliações';
+  
+  el.innerHTML = reviews.map(function(r){
+    var stars = '';
+    for (var i = 0; i < 5; i++) {
+      stars += i < r.nota 
+        ? '<i class="fa-solid fa-star"></i>' 
+        : '<i class="fa-regular fa-star"></i>';
+    }
+    
+    var imagemHtml = '';
+    if (r.imagem) {
+      imagemHtml = '<div class="review-imagem"><img src="' + r.imagem + '" alt="Foto da avaliação" onclick="abrirImagem(\'' + r.imagem + '\')"/></div>';
+    }
+    
+    return '<div class="review-card anim-fade-up">' +
+      '<div class="review-header">' +
+        '<div class="review-avatar">' + r.avatar + '</div>' +
+        '<div class="review-info">' +
+          '<div class="review-name">' + esc(r.nome) + '</div>' +
+          '<div class="review-date">' + r.data + '</div>' +
+        '</div>' +
+        '<div class="review-stars">' + stars + '</div>' +
+      '</div>' +
+      '<div class="review-text">' + esc(r.texto) + '</div>' +
+      imagemHtml +
+      '<div class="review-footer">' +
+        '<div class="review-like" onclick="likeReview(' + r.id + ')">' +
+          '<i class="fa-regular fa-thumbs-up"></i> <span id="like-' + r.id + '">' + r.likes + '</span>' +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function likeReview(id) {
+  var avaliacoes = getAvaliacoes();
+  var avaliacao = avaliacoes.find(function(a) { return a.id === id; });
+  if (avaliacao) {
+    avaliacao.likes++;
+    salvarAvaliacoes(avaliacoes);
+    
+    var el = document.getElementById('like-' + id);
+    if (el) el.textContent = avaliacao.likes;
+    showToast('👍 Obrigado pelo feedback!', 'ok');
+  }
+}
+
+var notaAtual = 5;
+var fotoBase64 = null;
+
+function abrirModalAvaliar() {
+  document.getElementById('modalAvaliar').style.display = 'flex';
+  selecionarNota(5); // Inicia com 5 estrelas
+}
+
+function fecharModalAvaliar() {
+  document.getElementById('modalAvaliar').style.display = 'none';
+  document.getElementById('textoAvaliacao').value = '';
+  document.getElementById('charCount').textContent = '0';
+  removerFotoAvaliacao();
+  selecionarNota(5);
+}
+
+function selecionarNota(nota) {
+  notaAtual = nota;
+  document.getElementById('notaSelecionada').value = nota;
+  
+  var stars = document.querySelectorAll('#starsInput i');
+  stars.forEach(function(star, index) {
+    if (index < nota) {
+      star.className = 'fa-solid fa-star';
+      star.style.color = '#ffd700';
+    } else {
+      star.className = 'fa-regular fa-star';
+      star.style.color = '#d1d5db';
+    }
+  });
+}
+
+function previewFotoAvaliacao(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('❌ Imagem muito grande! Máximo 2MB', 'err');
+    return;
+  }
+  
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    fotoBase64 = e.target.result;
+    document.getElementById('imgPreviewAvaliacao').src = fotoBase64;
+    document.getElementById('previewFotoAvaliacao').style.display = 'block';
+    document.getElementById('dropAreaAvaliacao').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerFotoAvaliacao() {
+  fotoBase64 = null;
+  document.getElementById('fotoAvaliacao').value = '';
+  document.getElementById('imgPreviewAvaliacao').src = '';
+  document.getElementById('previewFotoAvaliacao').style.display = 'none';
+  document.getElementById('dropAreaAvaliacao').style.display = 'block';
+}
+
+function enviarAvaliacao() {
+  var texto = document.getElementById('textoAvaliacao').value.trim();
+  
+  if (!texto) {
+    showToast('❌ Por favor, escreva um comentário', 'err');
+    return;
+  }
+  
+  var parceiro = getParceiro();
+  if (!parceiro || !parceiro.nome) {
+    showToast('❌ Você precisa estar logado para avaliar', 'err');
+    return;
+  }
+  
+  var novaAvaliacao = {
+    id: Date.now(),
+    nome: parceiro.nome,
+    avatar: parceiro.nome.charAt(0).toUpperCase(),
+    nota: notaAtual,
+    texto: texto,
+    data: 'Agora',
+    likes: 0,
+    imagem: fotoBase64,
+    fake: false
+  };
+  
+  var avaliacoes = getAvaliacoes();
+  avaliacoes.unshift(novaAvaliacao);
+  salvarAvaliacoes(avaliacoes);
+  
+  renderAvaliacoes();
+  fecharModalAvaliar();
+  showToast('🌟 Avaliação enviada com sucesso! Obrigado!', 'ok');
+}
+
+function abrirImagem(src) {
+  var modal = document.createElement('div');
+  modal.style.cssText = 'position:fixed; inset:0; background:rgba(0,0,0,.9); z-index:10000; display:flex; align-items:center; justify-content:center; cursor:pointer';
+  modal.innerHTML = '<img src="' + src + '" style="max-width:90%; max-height:90%; border-radius:12px"/>';
+  modal.onclick = function() { document.body.removeChild(modal); };
+  document.body.appendChild(modal);
+}
+
+function avaliar() {
+  abrirModalAvaliar();
+}
+
+// Contador de caracteres
+document.addEventListener('DOMContentLoaded', function() {
+  var textarea = document.getElementById('textoAvaliacao');
+  if (textarea) {
+    textarea.addEventListener('input', function() {
+      document.getElementById('charCount').textContent = this.value.length;
+    });
+  }
+});
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+authGuard(false, function() {
+  renderAvaliacoes();
+});
+</script>
+</body>
+</html>

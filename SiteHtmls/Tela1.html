@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MamaFood — Entre ou Cadastre-se</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  
+  <script src="../AppJs/devtools-protection.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --red: #ff3040; --red-dark: #d9202e; --red-glow: rgba(255,48,64,.28);
+      --white: #fff; --dark: #0f1120; --gray-3: #b0b4c8; --gray-4: #6b7099;
+      --border: rgba(255,255,255,.1); --bg-dark: #0a0c1a;
+    }
+    html, body {
+      height: 100%;
+      font-family: 'Inter', sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    a { text-decoration: none; color: inherit; }
+    button { cursor: pointer; border: none; outline: none; font-family: inherit; }
+    input, select { font-family: inherit; outline: none; }
+
+    /* ── LAYOUT ─────────────────────────────────────────── */
+    .page {
+      display: grid;
+      grid-template-columns: 1fr 480px;
+      min-height: 100vh;
+    }
+
+    /* ── LEFT PANEL ─────────────────────────────────────── */
+    .left {
+      position: relative;
+      background: var(--bg-dark);
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      padding: 40px 48px;
+    }
+
+    /* Animated gradient orbs */
+    .orb {
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(80px);
+      opacity: .55;
+      animation: drift 12s ease-in-out infinite alternate;
+    }
+    .orb-1 { width: 500px; height: 500px; background: radial-gradient(circle, #ff3040 0%, transparent 70%); top: -150px; left: -150px; animation-delay: 0s; }
+    .orb-2 { width: 400px; height: 400px; background: radial-gradient(circle, #6c3fff 0%, transparent 70%); bottom: -100px; right: -100px; animation-delay: -6s; }
+    .orb-3 { width: 300px; height: 300px; background: radial-gradient(circle, #ff8a65 0%, transparent 70%); top: 50%; left: 40%; animation-delay: -3s; opacity: .3; }
+    @keyframes drift {
+      from { transform: translate(0, 0) scale(1); }
+      to   { transform: translate(30px, 20px) scale(1.08); }
+    }
+
+    /* Noise overlay */
+    .left::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.035'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .left-content { position: relative; z-index: 2; }
+    .left-footer  { position: relative; z-index: 2; }
+
+    /* Logo */
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .logo-icon {
+      width: 44px; height: 44px;
+      background: linear-gradient(135deg, var(--red), #ff6b7a);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; color: #fff;
+      box-shadow: 0 6px 20px var(--red-glow);
+    }
+    .logo-name {
+      font-size: 1.35rem;
+      font-weight: 800;
+      color: #fff;
+      letter-spacing: -.02em;
+    }
+    .logo-name span { color: var(--red); }
+
+    /* Hero text */
+    .hero-text {
+      margin-top: auto;
+      padding: 60px 0 40px;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,48,64,.15);
+      border: 1px solid rgba(255,48,64,.3);
+      border-radius: 20px;
+      padding: 6px 14px;
+      font-size: .75rem;
+      font-weight: 700;
+      color: #ff7a87;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      margin-bottom: 24px;
+    }
+    .hero-badge span {
+      width: 6px; height: 6px;
+      background: var(--red);
+      border-radius: 50%;
+      display: inline-block;
+      animation: blink 1.5s infinite;
+    }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+    .hero-title {
+      font-size: clamp(2rem, 3.5vw, 3.2rem);
+      font-weight: 900;
+      color: #fff;
+      line-height: 1.1;
+      letter-spacing: -.03em;
+      margin-bottom: 18px;
+    }
+    .hero-title em {
+      font-style: normal;
+      background: linear-gradient(135deg, var(--red), #ff8a65);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .hero-sub {
+      font-size: 1rem;
+      color: rgba(255,255,255,.5);
+      line-height: 1.65;
+      max-width: 420px;
+    }
+
+    /* Feature pills */
+    .features {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-top: 32px;
+    }
+    .feat-pill {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 24px;
+      padding: 8px 16px;
+      font-size: .8rem;
+      font-weight: 600;
+      color: rgba(255,255,255,.7);
+      backdrop-filter: blur(8px);
+    }
+    .feat-pill i { color: var(--red); font-size: .8rem; }
+
+    /* Testimonial */
+    .left-footer .testimonial {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      background: rgba(255,255,255,.04);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 16px;
+      padding: 16px 20px;
+      backdrop-filter: blur(8px);
+    }
+    .test-avatar {
+      width: 42px; height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #ff8a65, var(--red));
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem;
+      flex-shrink: 0;
+    }
+    .test-text { font-size: .8rem; color: rgba(255,255,255,.55); line-height: 1.5; }
+    .test-name { font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.85); margin-top: 4px; }
+    .stars { color: #fbbf24; font-size: .7rem; letter-spacing: 1px; }
+
+    /* ── RIGHT PANEL ─────────────────────────────────────── */
+    .right {
+      background: #f4f5fb;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 32px 40px;
+      position: relative;
+      overflow-y: auto;
+    }
+
+    /* Card */
+    .card {
+      width: 100%;
+      max-width: 380px;
+    }
+
+    /* Card header */
+    .card-header { margin-bottom: 32px; }
+    .card-header h1 {
+      font-size: 1.65rem;
+      font-weight: 900;
+      color: var(--dark);
+      letter-spacing: -.03em;
+      margin-bottom: 6px;
+    }
+    .card-header p {
+      font-size: .88rem;
+      color: var(--gray-4);
+    }
+
+    /* Steps */
+    .step { display: none; }
+    .step.active { display: block; animation: fadeSlideIn .35s ease both; }
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Progress */
+    .progress { display: flex; gap: 5px; margin-bottom: 24px; }
+    .progress-dot {
+      height: 3px;
+      border-radius: 4px;
+      flex: 1;
+      background: #e2e4f0;
+      transition: background .3s;
+    }
+    .progress-dot.on { background: var(--red); }
+
+    /* Form fields */
+    .ff { margin-bottom: 14px; }
+    .ff label {
+      display: block;
+      font-size: .78rem;
+      font-weight: 700;
+      color: #374151;
+      margin-bottom: 6px;
+      letter-spacing: .01em;
+    }
+    .ff label .req { color: var(--red); }
+    .ff input, .ff select {
+      width: 100%;
+      padding: 12px 16px;
+      border: 1.5px solid #e2e4f0;
+      border-radius: 10px;
+      font-size: .9rem;
+      color: var(--dark);
+      background: var(--white);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .ff input:focus, .ff select:focus {
+      border-color: var(--red);
+      box-shadow: 0 0 0 3px rgba(255,48,64,.1);
+    }
+    .ff input::placeholder { color: #c4c9de; }
+    .ff input[readonly] { background: #f7f8fc; color: var(--gray-4); cursor: default; }
+    .ff-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+
+    /* Input icon */
+    .input-wrap { position: relative; }
+    .input-wrap .ico {
+      position: absolute;
+      left: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: #c4c9de;
+      font-size: .85rem;
+    }
+    .input-wrap input { padding-left: 38px; }
+    .input-edit-ico {
+      position: absolute;
+      right: 14px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--gray-3);
+      font-size: .8rem;
+      cursor: pointer;
+    }
+    .input-edit-ico:hover { color: var(--red); }
+
+    /* Primary button */
+    .btn-main {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--red), #ff6b7a);
+      color: #fff;
+      border-radius: 12px;
+      font-size: .95rem;
+      font-weight: 800;
+      margin-top: 6px;
+      transition: all .2s;
+      box-shadow: 0 4px 16px var(--red-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      letter-spacing: .01em;
+    }
+    .btn-main:hover {
+      background: linear-gradient(135deg, var(--red-dark), var(--red));
+      box-shadow: 0 8px 24px var(--red-glow);
+      transform: translateY(-1px);
+    }
+    .btn-main:active { transform: translateY(0); }
+
+    /* Divider */
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin: 20px 0;
+    }
+    .divider::before, .divider::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: #e2e4f0;
+    }
+    .divider span { font-size: .78rem; color: var(--gray-3); font-weight: 600; }
+
+    /* Google button wrapper */
+    #googleButtonWrapper {
+      display: flex;
+      justify-content: center;
+      min-height: 44px;
+      width: 100%;
+    }
+    #googleButtonWrapper > div {
+      display: flex !important;
+      justify-content: center !important;
+      width: 100% !important;
+    }
+
+    /* Terms */
+    .terms {
+      font-size: .72rem;
+      color: var(--gray-3);
+      margin-top: 16px;
+      line-height: 1.6;
+      text-align: center;
+    }
+    .terms a { color: var(--gray-4); text-decoration: underline; }
+
+    /* Back link */
+    .btn-back {
+      background: none;
+      font-size: .8rem;
+      color: var(--red);
+      font-weight: 600;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 0;
+      margin-top: 14px;
+      border: none;
+      cursor: pointer;
+      transition: opacity .15s;
+    }
+    .btn-back:hover { opacity: .7; }
+
+    /* Step 2 heading */
+    .step2-head { text-align: center; margin-bottom: 22px; }
+    .step2-head .emoji { font-size: 2.2rem; display: block; margin-bottom: 10px; }
+    .step2-head h2 { font-size: 1.3rem; font-weight: 900; color: var(--dark); margin-bottom: 4px; }
+    .step2-head p  { font-size: .83rem; color: var(--gray-4); }
+
+    /* Toast */
+    .toast-wrap { position: fixed; bottom: 24px; right: 24px; z-index: 999; display: flex; flex-direction: column; gap: 10px; }
+    .toast { background: var(--dark); color: #fff; padding: 13px 18px; border-radius: 12px; font-size: .87rem; font-weight: 500; display: flex; align-items: center; gap: 10px; box-shadow: 0 8px 32px rgba(0,0,0,.25); animation: tIn .35s cubic-bezier(.34,1.56,.64,1), tOut .4s ease 2.6s forwards; max-width: 340px; }
+    .toast.ok  { border-left: 4px solid #10b981; }
+    .toast.err { border-left: 4px solid var(--red); }
+    @keyframes tIn  { from { transform: translateX(110%) scale(.9); opacity:0; } to { transform: translateX(0) scale(1); opacity:1; } }
+    @keyframes tOut { to   { opacity:0; transform: translateX(20px); } }
+
+    /* Responsive */
+    @media (max-width: 900px) {
+      .page { grid-template-columns: 1fr; }
+      .left { display: none; }
+      .right { padding: 40px 24px; min-height: 100vh; background: #fff; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="page">
+
+  <!-- ── LEFT PANEL ── -->
+  <div class="left">
+    <div class="left-content">
+      <div class="logo">
+        <div class="logo-icon"><i class="fa-solid fa-bowl-food"></i></div>
+        <div class="logo-name">Mama<span>Food</span></div>
+      </div>
+
+      <div class="hero-text">
+        <div class="hero-badge">
+          <span></span> Plataforma de Delivery
+        </div>
+        <h1 class="hero-title">
+          Gerencie seu delivery<br>com <em>inteligência</em>
+        </h1>
+        <p class="hero-sub">
+          Painel completo para restaurantes. Receba pedidos, gerencie cardápio, controle entregas — tudo em um só lugar.
+        </p>
+        <div class="features">
+          <div class="feat-pill"><i class="fa-solid fa-bolt"></i> Pedidos em tempo real</div>
+          <div class="feat-pill"><i class="fa-solid fa-chart-line"></i> Relatórios</div>
+          <div class="feat-pill"><i class="fa-solid fa-motorcycle"></i> Controle de entregas</div>
+          <div class="feat-pill"><i class="fa-solid fa-utensils"></i> Cardápio digital</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="left-footer">
+      <div class="testimonial">
+        <div class="test-avatar">👩</div>
+        <div>
+          <div class="stars">★★★★★</div>
+          <div class="test-text">"Desde que comecei a usar o MamaFood, meus pedidos aumentaram 40%!"</div>
+          <div class="test-name">Maria S. — Casa da Mama</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── RIGHT PANEL ── -->
+  <div class="right">
+    <div class="card">
+
+      <!-- STEP 1: E-mail -->
+      <div class="step active" id="step1">
+        <div class="card-header">
+          <h1>Bem-vindo 👋</h1>
+          <p>Entre com seu e-mail para continuar</p>
+        </div>
+
+        <form id="form1" onsubmit="verificarEmail(event)">
+          <div class="ff">
+            <label>E-mail <span class="req">*</span></label>
+            <div class="input-wrap">
+              <i class="fa-regular fa-envelope ico"></i>
+              <input type="email" id="f-email" placeholder="seu@email.com.br" required />
+            </div>
+          </div>
+          <button type="submit" class="btn-main" id="btn-continuar">
+            Continuar <i class="fa-solid fa-arrow-right"></i>
+          </button>
+        </form>
+
+        <div class="divider"><span>ou continue com</span></div>
+        <div id="googleButtonWrapper"></div>
+
+        <p class="terms">
+          Ao continuar, você concorda com os
+          <a href="#">Termos de Uso</a> e
+          <a href="#">Política de Privacidade</a> do MamaFood.
+        </p>
+      </div>
+
+      <!-- STEP 2: Dados completos (novo cadastro) -->
+      <div class="step" id="step2">
+        <div class="progress">
+          <div class="progress-dot"></div>
+          <div class="progress-dot on"></div>
+        </div>
+
+        <div class="step2-head">
+          <span class="emoji">🎉</span>
+          <h2>Quase lá!</h2>
+          <p>Preencha seus dados para começar a receber pedidos</p>
+        </div>
+
+        <form id="form2" onsubmit="finishRegister(event)">
+          <div class="ff">
+            <label>Nome completo <span class="req">*</span></label>
+            <div class="input-wrap">
+              <i class="fa-regular fa-user ico"></i>
+              <input type="text" id="f-name" placeholder="Nome Sobrenome" required />
+            </div>
+          </div>
+          <div class="ff">
+            <label>Celular <span class="req">*</span></label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-phone ico"></i>
+              <input type="tel" id="f-phone" placeholder="(00) 00000-0000" maxlength="15" oninput="maskPhone(this)" required />
+            </div>
+          </div>
+          <div class="ff">
+            <label>E-mail <span class="req">*</span></label>
+            <div class="input-wrap" style="position:relative">
+              <i class="fa-regular fa-envelope ico"></i>
+              <input type="email" id="f-email2" style="padding-left:38px;padding-right:38px" readonly />
+              <i class="fa-solid fa-pen-to-square input-edit-ico" onclick="backStep()" title="Editar e-mail"></i>
+            </div>
+          </div>
+          <div class="ff">
+            <label>Senha <span class="req">*</span></label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-lock ico"></i>
+              <input type="password" id="f-senha" placeholder="Crie uma senha (mín. 6 caracteres)" minlength="6" required />
+            </div>
+          </div>
+          <div class="ff">
+            <label>CEP <span class="req">*</span></label>
+            <div class="input-wrap">
+              <i class="fa-solid fa-location-dot ico"></i>
+              <input type="text" id="f-cep" placeholder="00000-000" maxlength="9" oninput="maskCEP(this)" onblur="fetchCEP()" required />
+            </div>
+          </div>
+          <div class="ff">
+            <label>Rua / Logradouro <span class="req">*</span></label>
+            <input type="text" id="f-street" placeholder="Nome da rua" required />
+          </div>
+          <div class="ff-row">
+            <div class="ff">
+              <label>Número <span class="req">*</span></label>
+              <input type="text" id="f-number" placeholder="Nº" required />
+            </div>
+            <div class="ff">
+              <label>Complemento</label>
+              <input type="text" id="f-comp" placeholder="Apto, sala..." />
+            </div>
+          </div>
+          <div class="ff">
+            <label>Bairro <span class="req">*</span></label>
+            <input type="text" id="f-neighborhood" placeholder="Seu bairro" required />
+          </div>
+          <div class="ff-row">
+            <div class="ff">
+              <label>Cidade <span class="req">*</span></label>
+              <input type="text" id="f-city" placeholder="Cidade" required />
+            </div>
+            <div class="ff">
+              <label>Estado <span class="req">*</span></label>
+              <select id="f-state" required>
+                <option value="">UF</option>
+                <option>AC</option><option>AL</option><option>AP</option><option>AM</option>
+                <option>BA</option><option>CE</option><option>DF</option><option>ES</option>
+                <option>GO</option><option>MA</option><option>MT</option><option>MS</option>
+                <option>MG</option><option>PA</option><option>PB</option><option>PR</option>
+                <option>PE</option><option>PI</option><option>RJ</option><option>RN</option>
+                <option>RS</option><option>RO</option><option>RR</option><option>SC</option>
+                <option>SP</option><option>SE</option><option>TO</option>
+              </select>
+            </div>
+          </div>
+          <button type="submit" class="btn-main">
+            <i class="fa-solid fa-check"></i> Finalizar cadastro
+          </button>
+        </form>
+        <button class="btn-back" onclick="backStep()">
+          <i class="fa-solid fa-arrow-left"></i> Voltar
+        </button>
+      </div>
+
+    </div><!-- /card -->
+  </div><!-- /right -->
+
+</div><!-- /page -->
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script>
+  // ── Auto-login ────────────────────────────────────────────────────
+  (function(){
+    var parceiroAntigo = JSON.parse(localStorage.getItem('mf_parceiro') || 'null');
+    if (parceiroAntigo && parceiroAntigo.email) {
+      var usuarios = JSON.parse(localStorage.getItem('mf_usuarios') || '[]');
+      var jaExiste = usuarios.some(function(u){ return u.email.toLowerCase() === parceiroAntigo.email.toLowerCase(); });
+      if (!jaExiste) usuarios.push(parceiroAntigo);
+      localStorage.setItem('mf_usuarios', JSON.stringify(usuarios));
+      if (!localStorage.getItem('mf_sessao_ativa')) localStorage.setItem('mf_sessao_ativa', JSON.stringify(parceiroAntigo));
+    }
+    var sessao   = JSON.parse(localStorage.getItem('mf_sessao_ativa') || 'null');
+    var parceiro = JSON.parse(localStorage.getItem('mf_parceiro') || 'null');
+    if (sessao && sessao.email && parceiro && parceiro.email && parceiro.nome) {
+      window.location.replace('Tela2.html');
+    } else if (sessao && !parceiro) {
+      localStorage.removeItem('mf_sessao_ativa');
+    }
+  })();
+
+  // ── Verificar email ───────────────────────────────────────────────
+  function verificarEmail(e) {
+    e.preventDefault();
+    var email    = document.getElementById('f-email').value.trim().toLowerCase();
+    var btn      = document.getElementById('btn-continuar');
+    if (!email) return;
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verificando...';
+    btn.disabled  = true;
+    setTimeout(function(){
+      var usuarios        = JSON.parse(localStorage.getItem('mf_usuarios') || '[]');
+      var usuarioEncontrado = usuarios.find(function(u){ return u.email.toLowerCase() === email; }) || null;
+      if (usuarioEncontrado) {
+        localStorage.setItem('mf_sessao_ativa', JSON.stringify(usuarioEncontrado));
+        localStorage.setItem('mf_parceiro', JSON.stringify(usuarioEncontrado));
+        showToast('✅ Bem-vindo de volta, ' + usuarioEncontrado.nome.split(' ')[0] + '!', 'ok');
+        setTimeout(function(){ window.location.href = 'Tela2.html'; }, 1000);
+      } else {
+        document.getElementById('f-email2').value = email;
+        document.getElementById('step1').classList.remove('active');
+        document.getElementById('step2').classList.add('active');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        btn.innerHTML = 'Continuar <i class="fa-solid fa-arrow-right"></i>';
+        btn.disabled  = false;
+      }
+    }, 600);
+  }
+
+  function backStep() {
+    document.getElementById('step2').classList.remove('active');
+    document.getElementById('step1').classList.add('active');
+  }
+
+  // ── Finalizar cadastro ────────────────────────────────────────────
+  function finishRegister(e) {
+    e.preventDefault();
+    var data = {
+      email:       document.getElementById('f-email2').value.toLowerCase(),
+      nome:        document.getElementById('f-name').value,
+      celular:     document.getElementById('f-phone').value,
+      senha:       document.getElementById('f-senha').value,
+      cep:         document.getElementById('f-cep').value,
+      rua:         document.getElementById('f-street').value,
+      numero:      document.getElementById('f-number').value,
+      complemento: document.getElementById('f-comp').value,
+      bairro:      document.getElementById('f-neighborhood').value,
+      cidade:      document.getElementById('f-city').value,
+      estado:      document.getElementById('f-state').value,
+      cadastradoEm: new Date().toISOString()
+    };
+    var usuarios = JSON.parse(localStorage.getItem('mf_usuarios') || '[]');
+    var idx      = usuarios.findIndex(function(u){ return u.email === data.email; });
+    if (idx >= 0) usuarios[idx] = data; else usuarios.push(data);
+    localStorage.setItem('mf_usuarios', JSON.stringify(usuarios));
+    localStorage.setItem('mf_sessao_ativa', JSON.stringify(data));
+    localStorage.setItem('mf_parceiro', JSON.stringify(data));
+    if (!localStorage.getItem('mf_pedidos')) localStorage.setItem('mf_pedidos', JSON.stringify([]));
+    localStorage.setItem('mf_novo_cadastro', '1');
+    showToast('🎉 Cadastro salvo! Redirecionando...', 'ok');
+    setTimeout(function(){ window.location.href = 'Tela2.html'; }, 1200);
+  }
+
+  // ── Máscaras ──────────────────────────────────────────────────────
+  function maskPhone(el) {
+    var v = el.value.replace(/\D/g, '').slice(0, 11);
+    if (v.length > 6)      v = '(' + v.slice(0,2) + ') ' + v.slice(2,7) + '-' + v.slice(7);
+    else if (v.length > 2) v = '(' + v.slice(0,2) + ') ' + v.slice(2);
+    else if (v.length > 0) v = '(' + v;
+    el.value = v;
+  }
+  function maskCEP(el) {
+    var v = el.value.replace(/\D/g, '').slice(0, 8);
+    if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+    el.value = v;
+  }
+
+  // ── ViaCEP ────────────────────────────────────────────────────────
+  function fetchCEP() {
+    var cep = document.getElementById('f-cep').value.replace(/\D/g, '');
+    if (cep.length !== 8) return;
+    fetch('https://viacep.com.br/ws/' + cep + '/json/')
+      .then(function(r){ return r.json(); })
+      .then(function(d){
+        if (d.erro) { showToast('CEP não encontrado.', 'err'); return; }
+        document.getElementById('f-street').value       = d.logradouro  || '';
+        document.getElementById('f-neighborhood').value = d.bairro      || '';
+        document.getElementById('f-city').value         = d.localidade  || '';
+        var sel = document.getElementById('f-state');
+        for (var i = 0; i < sel.options.length; i++) {
+          if (sel.options[i].value === d.uf) { sel.selectedIndex = i; break; }
+        }
+        document.getElementById('f-number').focus();
+      })
+      .catch(function(){});
+  }
+
+  // ── Google Sign-In ────────────────────────────────────────────────
+  function handleGoogleSignIn(response) {
+    try {
+      var payload  = JSON.parse(atob(response.credential.split('.')[1]));
+      var userData = {
+        email: payload.email.toLowerCase(), nome: payload.name,
+        foto: payload.picture, googleId: payload.sub, celular: '',
+        loginViaGoogle: true, cadastradoEm: new Date().toISOString()
+      };
+      var usuarios = JSON.parse(localStorage.getItem('mf_usuarios') || '[]');
+      var existe   = false;
+      for (var i = 0; i < usuarios.length; i++) {
+        if (usuarios[i].email === userData.email) {
+          existe = true;
+          usuarios[i].nome = userData.nome; usuarios[i].foto = userData.foto; usuarios[i].googleId = userData.googleId;
+          userData = usuarios[i]; break;
+        }
+      }
+      if (!existe) usuarios.push(userData);
+      localStorage.setItem('mf_usuarios', JSON.stringify(usuarios));
+      localStorage.setItem('mf_sessao_ativa', JSON.stringify(userData));
+      localStorage.setItem('mf_parceiro', JSON.stringify(userData));
+      if (!localStorage.getItem('mf_pedidos')) localStorage.setItem('mf_pedidos', JSON.stringify([]));
+      if (!existe) localStorage.setItem('mf_novo_cadastro', '1');
+      showToast('✅ Login com Google realizado!', 'ok');
+      setTimeout(function(){ window.location.href = 'Tela2.html'; }, 1000);
+    } catch (err) {
+      showToast('❌ Erro ao fazer login com Google', 'err');
+    }
+  }
+
+  window.addEventListener('load', function() {
+    var tentativas = 0;
+    var intervalo  = setInterval(function() {
+      tentativas++;
+      if (typeof google !== 'undefined' && google.accounts && google.accounts.id) {
+        clearInterval(intervalo);
+        google.accounts.id.initialize({
+          client_id: '947344893783-0ifjnair5kctsf5sm42m60tall2d3jcg.apps.googleusercontent.com',
+          callback: handleGoogleSignIn, auto_select: false, cancel_on_tap_outside: true
+        });
+        google.accounts.id.renderButton(
+          document.getElementById('googleButtonWrapper'),
+          { theme: 'outline', size: 'large', text: 'continue_with', shape: 'rectangular', logo_alignment: 'left', width: 340 }
+        );
+      } else if (tentativas >= 10) { clearInterval(intervalo); }
+    }, 500);
+  });
+
+  // ── Toast ─────────────────────────────────────────────────────────
+  function showToast(msg, type) {
+    var wrap = document.getElementById('toastWrap');
+    var t    = document.createElement('div');
+    t.className   = 'toast ' + (type || 'ok');
+    t.textContent = msg;
+    wrap.appendChild(t);
+    setTimeout(function(){ if (t.parentNode) t.parentNode.removeChild(t); }, 3200);
+  }
+</script>
+</body>
+</html>

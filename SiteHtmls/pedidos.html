@@ -1,0 +1,561 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Pedidos (Admin)</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../shared.css"/>
+  <style>
+    /* Fix sidebar */
+    .sidebar { background: #0f1120 !important; }
+    
+    /* ── Stat card icons ── */
+    .stat-card .s-icon {
+      width: 42px; height: 42px;
+      border-radius: 11px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem;
+      margin-bottom: 12px;
+    }
+    .stat-card.red .s-icon    { background: var(--red-subtle); color: var(--red); }
+    .stat-card.orange .s-icon { background: var(--orange-bg); color: var(--orange-dark); }
+    .stat-card.blue .s-icon   { background: var(--blue-bg); color: var(--blue-dark); }
+    .stat-card.green .s-icon  { background: var(--green-bg); color: var(--green-dark); }
+
+    /* ── Order card redesign ── */
+    .order-card {
+      background: var(--surface);
+      border-radius: 14px;
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow-xs);
+      overflow: hidden;
+      transition: box-shadow .2s, transform .2s;
+      animation: slideCard .35s ease both;
+    }
+    .order-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+    @keyframes slideCard { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
+
+    /* Status accent bars */
+    .order-card.new      { border-left: 4px solid var(--red); }
+    .order-card.prep     { border-left: 4px solid var(--orange); }
+    .order-card.delivery { border-left: 4px solid var(--blue); }
+    .order-card.done     { border-left: 4px solid var(--green); opacity: .75; }
+    .order-card.cancelled{ border-left: 4px solid var(--gray-3); opacity: .6; }
+
+    /* Header */
+    .oc-header {
+      padding: 14px 18px 12px;
+      background: var(--gray-1);
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .oc-id-block { display: flex; flex-direction: column; gap: 2px; }
+    .oc-num { font-size: .92rem; font-weight: 900; color: var(--dark); letter-spacing: -.01em; }
+    .oc-time-badge {
+      display: inline-flex; align-items: center; gap: 4px;
+      font-size: .72rem; color: var(--gray-3);
+    }
+    .oc-client { display: flex; flex-direction: column; gap: 2px; }
+    .oc-name { font-size: .9rem; font-weight: 700; color: var(--dark); }
+    .oc-addr { font-size: .75rem; color: var(--gray-3); display: flex; align-items: center; gap: 4px; }
+    .oc-addr i { color: var(--red); font-size: .68rem; }
+
+    .oc-status-wrap { margin-left: auto; display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+    .oc-status {
+      padding: 5px 13px;
+      border-radius: 20px;
+      font-size: .72rem;
+      font-weight: 800;
+      white-space: nowrap;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+    }
+    .oc-status.new      { background: var(--red-subtle); color: var(--red); }
+    .oc-status.prep     { background: var(--orange-bg); color: var(--orange-dark); }
+    .oc-status.delivery { background: var(--blue-bg); color: var(--blue-dark); }
+    .oc-status.done     { background: var(--green-bg); color: var(--green-dark); }
+    .oc-status.cancelled{ background: var(--gray-1); color: var(--gray-3); }
+
+    /* Body */
+    .oc-body {
+      padding: 14px 18px;
+      display: flex;
+      align-items: flex-start;
+      gap: 18px;
+      flex-wrap: wrap;
+    }
+    .oc-items-section { flex: 1; min-width: 160px; }
+    .oc-items-title { font-size: .7rem; font-weight: 700; color: var(--gray-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 7px; }
+    .oc-item-row { display: flex; align-items: center; gap: 8px; padding: 4px 0; border-bottom: 1px solid var(--gray-1); font-size: .84rem; color: var(--gray-4); }
+    .oc-item-row:last-child { border-bottom: none; }
+    .oc-item-row .qty { background: var(--red-subtle); color: var(--red); font-weight: 800; font-size: .75rem; padding: 2px 7px; border-radius: 6px; white-space: nowrap; }
+
+    .oc-total-section { text-align: right; flex-shrink: 0; }
+    .oc-total-label { font-size: .7rem; font-weight: 700; color: var(--gray-3); text-transform: uppercase; letter-spacing: .07em; margin-bottom: 4px; }
+    .oc-total-val { font-size: 1.3rem; font-weight: 900; color: var(--dark); letter-spacing: -.02em; }
+
+    /* Actions */
+    .oc-actions-section {
+      border-top: 1px solid var(--border);
+      padding: 12px 18px;
+      background: var(--gray-1);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .oc-actions-label { font-size: .75rem; font-weight: 700; color: var(--gray-3); margin-right: 4px; }
+
+    .btn-confirm {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px;
+      background: linear-gradient(135deg, var(--red), #ff6b7a);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      box-shadow: 0 3px 10px var(--red-glow);
+      font-family: inherit;
+    }
+    .btn-confirm:hover { box-shadow: 0 6px 18px var(--red-glow); transform: translateY(-1px); }
+
+    .btn-next-step {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px;
+      background: var(--green-bg);
+      color: var(--green-dark);
+      border: 1.5px solid #a7f3d0;
+      border-radius: 10px;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: inherit;
+    }
+    .btn-next-step:hover { background: #d1fae5; }
+
+    .btn-cancel {
+      display: inline-flex; align-items: center; gap: 7px;
+      padding: 10px 20px;
+      background: var(--gray-1);
+      color: #dc2626;
+      border: 1.5px solid #fecaca;
+      border-radius: 10px;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      font-family: inherit;
+    }
+    .btn-cancel:hover { background: #fef2f2; border-color: #fca5a5; }
+
+    /* Empty state */
+    .empty-orders {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--gray-3);
+    }
+    .empty-orders .empty-icon {
+      font-size: 3rem;
+      margin-bottom: 16px;
+      display: block;
+      opacity: .35;
+    }
+    .empty-orders h3 { font-size: 1.05rem; font-weight: 800; color: var(--gray-4); margin-bottom: 6px; }
+    .empty-orders p  { font-size: .85rem; }
+
+    /* Topbar clear btn */
+    .btn-clear-all {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 7px 14px;
+      background: #fef2f2;
+      color: #dc2626;
+      border: 1.5px solid #fecaca;
+      border-radius: var(--r-sm);
+      font-size: .8rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .15s;
+      font-family: inherit;
+    }
+    .btn-clear-all:hover { background: #fee2e2; }
+
+    /* Live badge */
+    .live-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--red-subtle);
+      border: 1px solid rgba(255,48,64,.2);
+      border-radius: 20px;
+      padding: 5px 12px;
+      font-size: .75rem;
+      font-weight: 700;
+      color: var(--red);
+    }
+    .live-dot {
+      width: 7px; height: 7px;
+      background: var(--red);
+      border-radius: 50%;
+      animation: blink-live 1.4s infinite;
+    }
+    @keyframes blink-live { 0%,100%{opacity:1} 50%{opacity:.25} }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar" style="background:#0f1120!important"></aside>
+  <div class="main">
+
+    <!-- TOPBAR -->
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div>
+        <span class="topbar-title">Pedidos</span>
+        <span class="topbar-sub"> — em tempo real</span>
+      </div>
+      <div class="topbar-right">
+        <div class="live-badge"><div class="live-dot"></div> Ao vivo</div>
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+        <div class="status-pill open" id="status-pill" onclick="toggleStatus()">
+          <span class="dot"></span><span id="status-text">Aberto</span>
+        </div>
+        <button class="btn-clear-all" onclick="limparTodosPedidos()">
+          <i class="fa-solid fa-trash"></i> Limpar
+        </button>
+      </div>
+    </div>
+
+    <!-- CONTENT -->
+    <div class="content">
+
+      <!-- STAT CARDS -->
+      <div class="stats-row" style="margin-bottom:20px">
+        <div class="stat-card red">
+          <div class="s-icon"><i class="fa-solid fa-bell"></i></div>
+          <div class="s-label">Novos</div>
+          <div class="s-val" id="cnt-new">0</div>
+          <div class="s-sub">aguardando aceite</div>
+        </div>
+        <div class="stat-card orange">
+          <div class="s-icon"><i class="fa-solid fa-fire-burner"></i></div>
+          <div class="s-label">Em preparo</div>
+          <div class="s-val" id="cnt-prep">0</div>
+          <div class="s-sub">na cozinha agora</div>
+        </div>
+        <div class="stat-card blue">
+          <div class="s-icon"><i class="fa-solid fa-motorcycle"></i></div>
+          <div class="s-label">A caminho</div>
+          <div class="s-val" id="cnt-del">0</div>
+          <div class="s-sub">com entregador</div>
+        </div>
+        <div class="stat-card green">
+          <div class="s-icon"><i class="fa-solid fa-circle-check"></i></div>
+          <div class="s-label">Concluídos</div>
+          <div class="s-val" id="cnt-done">0</div>
+          <div class="s-sub">hoje</div>
+        </div>
+      </div>
+
+      <!-- TABS -->
+      <div class="page-tabs" style="margin-bottom:18px">
+        <div class="ptab active" id="tab-ativos" onclick="switchTab('ativos')">
+          <i class="fa-solid fa-bolt" style="font-size:.75rem"></i>
+          Ativos <span class="n" id="n-ativos">0</span>
+        </div>
+        <div class="ptab" id="tab-concluidos" onclick="switchTab('concluidos')">
+          <i class="fa-solid fa-check" style="font-size:.75rem"></i>
+          Concluídos <span class="n" id="n-concluidos">0</span>
+        </div>
+      </div>
+
+      <!-- ORDERS LIST -->
+      <div id="ordersList"></div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /layout -->
+
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="../AppJs/shared.js?v=<?php echo time(); ?>"></script>
+<script>
+// ═══════════════════════════════════════════════════════════
+// Estado
+// ═══════════════════════════════════════════════════════════
+var tabAtual   = 'ativos';
+var lojaAberta = true;
+
+// ── Helpers de storage ──────────────────────────────────────
+function getPedidos() {
+  try { return JSON.parse(localStorage.getItem('mf_pedidos') || '[]'); }
+  catch(e) { return []; }
+}
+function setPedidos(p) {
+  localStorage.setItem('mf_pedidos', JSON.stringify(p));
+}
+
+// ── Toggle status da loja ───────────────────────────────────
+function toggleStatus() {
+  lojaAberta = !lojaAberta;
+  var pill = document.getElementById('status-pill');
+  document.getElementById('status-text').textContent = lojaAberta ? 'Aberto' : 'Fechado';
+  pill.className = 'status-pill ' + (lojaAberta ? 'open' : 'closed');
+  showToast(lojaAberta ? '✅ Loja aberta' : '🔴 Loja fechada', lojaAberta ? 'ok' : 'err');
+}
+
+// ── Troca de aba ────────────────────────────────────────────
+function switchTab(tab) {
+  tabAtual = tab;
+  document.getElementById('tab-ativos').classList.toggle('active', tab === 'ativos');
+  document.getElementById('tab-concluidos').classList.toggle('active', tab === 'concluidos');
+  renderOrders();
+}
+
+// ── Renderiza os pedidos ────────────────────────────────────
+function renderOrders() {
+  var pedidos   = getPedidos();
+  var ativos    = pedidos.filter(function(p){ return p.status !== 'done' && p.status !== 'cancelled'; });
+  var concluidos= pedidos.filter(function(p){ return p.status === 'done'; });
+  var novos     = pedidos.filter(function(p){ return p.status === 'new'; });
+
+  // Atualiza contadores
+  document.getElementById('cnt-new').textContent  = novos.length;
+  document.getElementById('cnt-prep').textContent = pedidos.filter(function(p){ return p.status === 'prep'; }).length;
+  document.getElementById('cnt-del').textContent  = pedidos.filter(function(p){ return p.status === 'delivery'; }).length;
+  document.getElementById('cnt-done').textContent = concluidos.length;
+  document.getElementById('n-ativos').textContent = ativos.length;
+  document.getElementById('n-concluidos').textContent = concluidos.length;
+
+  // Badge da sidebar
+  var badge = document.getElementById('badge-new');
+  if (badge) badge.textContent = novos.length;
+
+  var list = tabAtual === 'ativos' ? ativos : concluidos;
+  var el   = document.getElementById('ordersList');
+  if (!el) return;
+
+  if (!list || list.length === 0) {
+    el.innerHTML = [
+      '<div class="empty-orders">',
+      '  <span class="empty-icon"><i class="fa-solid fa-bag-shopping"></i></span>',
+      '  <h3>' + (tabAtual === 'ativos' ? 'Nenhum pedido ativo' : 'Nenhum pedido concluído') + '</h3>',
+      '  <p>Os pedidos aparecem aqui assim que chegarem</p>',
+      '</div>'
+    ].join('');
+    return;
+  }
+
+  var labels = { new: 'Novo', prep: 'Em preparo', delivery: 'A caminho', done: 'Entregue', cancelled: 'Cancelado' };
+
+  var html = list.map(function(p) {
+    // Itens
+    var itens = (p.itens || []).map(function(i) {
+      return '<div class="oc-item-row">' +
+             '<span class="qty">' + (i.qty || 1) + 'x</span>' +
+             '<span>' + esc(i.nome || '') + '</span>' +
+             '</div>';
+    }).join('') || '<div class="oc-item-row"><span>Item não identificado</span></div>';
+
+    // Botões de ação
+    var actions = '';
+    if (p.status === 'new') {
+      actions =
+        '<span class="oc-actions-label">Ação:</span>' +
+        '<button class="btn-confirm" onclick="mover(' + p.id + ',\'prep\')"><i class="fa-solid fa-check"></i> Confirmar pedido</button>' +
+        '<button class="btn-cancel"  onclick="mover(' + p.id + ',\'cancel\')"><i class="fa-solid fa-xmark"></i> Cancelar</button>';
+    } else if (p.status === 'prep') {
+      actions =
+        '<span class="oc-actions-label">Ação:</span>' +
+        '<button class="btn-next-step" onclick="mover(' + p.id + ',\'delivery\')"><i class="fa-solid fa-motorcycle"></i> Saiu para entrega</button>' +
+        '<button class="btn-cancel" onclick="mover(' + p.id + ',\'cancel\')"><i class="fa-solid fa-xmark"></i> Cancelar</button>';
+    } else if (p.status === 'delivery') {
+      actions =
+        '<span class="oc-actions-label">Ação:</span>' +
+        '<button class="btn-next-step" onclick="mover(' + p.id + ',\'done\')"><i class="fa-solid fa-circle-check"></i> Marcar como entregue</button>' +
+        '<button class="btn-cancel" onclick="mover(' + p.id + ',\'cancel\')"><i class="fa-solid fa-xmark"></i> Cancelar</button>';
+    }
+
+    var idStr     = '#' + String(p.id).slice(-4).padStart(4, '0');
+    var statusCls = p.status || 'new';
+    var statusLbl = labels[p.status] || p.status;
+
+    return [
+      '<div class="order-card ' + statusCls + '">',
+
+      '  <!-- HEADER -->',
+      '  <div class="oc-header">',
+      '    <div class="oc-id-block">',
+      '      <div class="oc-num">' + idStr + '</div>',
+      '      <div class="oc-time-badge"><i class="fa-regular fa-clock"></i>' + esc(p.hora || '--:--') + '</div>',
+      '    </div>',
+      '    <div class="oc-client">',
+      '      <div class="oc-name">' + esc(p.cliente || 'Cliente') + '</div>',
+      '      <div class="oc-addr"><i class="fa-solid fa-location-dot"></i>' + esc(p.endereco || '') + '</div>',
+      '    </div>',
+      '    <div class="oc-status-wrap">',
+      '      <span class="oc-status ' + statusCls + '">' + statusLbl + '</span>',
+      '    </div>',
+      '  </div>',
+
+      '  <!-- BODY -->',
+      '  <div class="oc-body">',
+      '    <div class="oc-items-section">',
+      '      <div class="oc-items-title">Itens do pedido</div>',
+      '      ' + itens,
+      '    </div>',
+      '    <div class="oc-total-section">',
+      '      <div class="oc-total-label">Total</div>',
+      '      <div class="oc-total-val">R$ ' + Number(p.total || 0).toFixed(2).replace('.', ',') + '</div>',
+      '    </div>',
+      '  </div>',
+
+      // Renderiza botões só se houver ação
+      actions ? '  <div class="oc-actions-section">' + actions + '</div>' : '',
+
+      '</div>'
+    ].join('\n');
+  }).join('\n');
+
+  el.innerHTML = html;
+}
+
+// ── Mover pedido entre estados ──────────────────────────────
+function mover(id, status) {
+  var pedidos = getPedidos();
+  var idx = pedidos.findIndex(function(p){ return p.id === id; });
+  if (idx === -1) { showToast('Pedido não encontrado', 'err'); return; }
+
+  if (status === 'cancel') {
+    if (!confirm('Cancelar o pedido #' + String(id).slice(-4).padStart(4,'0') + '?')) return;
+    pedidos.splice(idx, 1);
+    showToast('❌ Pedido cancelado', 'err');
+  } else {
+    pedidos[idx].status = status;
+    var msgs = { prep: '🍳 Pedido confirmado — em preparo!', delivery: '🛵 A caminho!', done: '✅ Pedido entregue!' };
+    showToast(msgs[status] || 'Atualizado', 'ok');
+  }
+
+  setPedidos(pedidos);
+  renderOrders();
+}
+
+// ── Limpar todos os pedidos ─────────────────────────────────
+function limparTodosPedidos() {
+  if (!confirm('Tem certeza que deseja limpar TODOS os pedidos?\nEsta ação não pode ser desfeita.')) return;
+  localStorage.removeItem('mf_pedidos');
+  localStorage.removeItem('mf_meus_pedidos');
+  localStorage.removeItem('mf_pedidos_impressos');
+  showToast('🗑️ Todos os pedidos foram removidos', 'ok');
+  renderOrders();
+}
+
+// ── Esc helper ──────────────────────────────────────────────
+function esc(s) {
+  return String(s)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+}
+
+// ── Impressão automática ────────────────────────────────────
+function imprimirPedido(pedido) {
+  var win = window.open('', '_blank', 'width=300,height=600');
+  if (!win) return;
+  var html = '<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Pedido</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />'
+    + '<style>body{font-family:monospace;font-size:12px;margin:10px;width:280px}'
+    + 'h1{text-align:center;border-bottom:2px solid #000;padding-bottom:6px}'
+    + '.info{margin:4px 0}.itens{margin:10px 0;border-top:1px dashed #000;border-bottom:1px dashed #000;padding:8px 0}'
+    + '.total{font-size:15px;font-weight:bold;text-align:right;margin-top:8px}'
+    + '.rodape{text-align:center;margin-top:16px;font-size:10px;border-top:1px solid #000;padding-top:8px}'
+    + '@media print{body{width:80mm}}</style></head><body>'
+    + '<h1>MAMAFOOD</h1>'
+    + '<div style="text-align:center;margin-bottom:8px">*** NOVO PEDIDO ***</div>'
+    + '<div class="info"><b>Pedido:</b> #' + String(pedido.id).slice(-4).padStart(4,'0') + '</div>'
+    + '<div class="info"><b>Hora:</b> ' + (pedido.hora||'--') + '</div>'
+    + '<div class="info"><b>Cliente:</b> ' + (pedido.cliente||'') + '</div>'
+    + '<div class="info"><b>Endereço:</b> ' + (pedido.endereco||'') + '</div>'
+    + '<div class="itens"><b>ITENS:</b><br>'
+    + (pedido.itens||[]).map(function(i){ return i.qty+'x '+i.nome; }).join('<br>')
+    + '</div>'
+    + '<div class="total">TOTAL: R$ ' + Number(pedido.total||0).toFixed(2).replace('.',',') + '</div>'
+    + '<div class="rodape">Obrigado pela preferência!<br>MamaFood Delivery</div>'
+    + '</body></html>';
+  win.document.write(html);
+  win.document.close();
+  setTimeout(function(){ win.print(); setTimeout(function(){ win.close(); }, 1000); }, 500);
+}
+
+// ═══════════════════════════════════════════════════════════
+// Init — authGuard garante que só admin entra
+// ═══════════════════════════════════════════════════════════
+
+// DEBUG: Verificar carregamento
+console.log('🔍 PEDIDOS.HTML: Script carregado');
+console.log('🔍 buildSidebar existe?', typeof buildSidebar);
+console.log('🔍 authGuard existe?', typeof authGuard);
+
+// Força construção da sidebar (fallback caso authGuard falhe)
+setTimeout(function() {
+  console.log('⏰ setTimeout executado');
+  if (typeof buildSidebar === 'function') {
+    console.log('✅ buildSidebar encontrado, chamando...');
+    buildSidebar('pedidos.html');
+    if (typeof startClock === 'function') startClock('clock');
+  } else {
+    console.error('❌ buildSidebar não encontrado! Verifique se shared.js está carregando.');
+  }
+}, 100);
+
+authGuard(true, function() {
+  console.log('✅ Admin autenticado em pedidos.html!');
+  console.log('🔍 Chamando buildSidebar novamente dentro do authGuard...');
+  if (typeof buildSidebar === 'function') {
+    buildSidebar('pedidos.html');
+  }
+  
+  renderOrders();
+
+  // Polling a cada 3s — detecta novos pedidos e atualiza badge/lista
+  var impressos = JSON.parse(localStorage.getItem('mf_pedidos_impressos') || '[]');
+  setInterval(function() {
+    renderOrders();
+    var pedidos = getPedidos();
+    var novosNaoImpressos = pedidos.filter(function(p){
+      return p.status === 'new' && impressos.indexOf(p.id) === -1;
+    });
+    novosNaoImpressos.forEach(function(p){
+      imprimirPedido(p);
+      impressos.push(p.id);
+    });
+    if (novosNaoImpressos.length > 0) {
+      localStorage.setItem('mf_pedidos_impressos', JSON.stringify(impressos));
+      showToast('🛎️ ' + novosNaoImpressos.length + ' novo(s) pedido(s)!', 'info');
+    }
+  }, 3000);
+});
+</script>
+</body>
+</html>

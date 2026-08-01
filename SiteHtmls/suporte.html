@@ -1,0 +1,202 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Suporte</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../shared.css"/>
+  <style>
+    .support-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 32px; }
+    
+    .support-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 28px;
+      text-align: center;
+      transition: all .2s;
+      cursor: pointer;
+      box-shadow: var(--shadow-xs);
+    }
+    .support-card:hover { box-shadow: var(--shadow-md); transform: translateY(-4px); border-color: var(--red); }
+    
+    .support-icon {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 16px;
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      color: #fff;
+    }
+    .support-icon.whatsapp { background: linear-gradient(135deg, #25D366, #128C7E); }
+    .support-icon.email { background: linear-gradient(135deg, #ea4335, #ff6b6b); }
+    .support-icon.faq { background: linear-gradient(135deg, #667eea, #764ba2); }
+    
+    .support-title { font-size: 1.1rem; font-weight: 800; color: var(--dark); margin-bottom: 8px; }
+    .support-desc { font-size: .85rem; color: var(--gray-3); line-height: 1.5; }
+    
+    .faq-section { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-lg); padding: 28px; }
+    .faq-title { font-size: 1.3rem; font-weight: 900; color: var(--dark); margin-bottom: 24px; display: flex; align-items: center; gap: 10px; }
+    .faq-title i { color: var(--red); }
+    
+    .faq-item {
+      border-bottom: 1px solid var(--border);
+      padding: 18px 0;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .faq-item:last-child { border-bottom: none; }
+    .faq-item:hover .faq-q { color: var(--red); }
+    
+    .faq-q {
+      font-size: .95rem;
+      font-weight: 700;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transition: color .2s;
+    }
+    .faq-q i { color: var(--gray-3); transition: transform .3s; }
+    .faq-item.open .faq-q i { transform: rotate(180deg); color: var(--red); }
+    
+    .faq-a {
+      font-size: .88rem;
+      color: var(--gray-4);
+      line-height: 1.6;
+      margin-top: 12px;
+      display: none;
+      padding-left: 8px;
+      border-left: 3px solid var(--red-subtle);
+    }
+    .faq-item.open .faq-a { display: block; animation: fadeIn .3s; }
+    
+    @keyframes fadeIn { from{ opacity: 0; transform: translateY(-10px); } to{ opacity: 1; transform: translateY(0); } }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Suporte</span><span class="topbar-sub"> — estamos aqui para ajudar</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+    
+    <div class="content">
+      <!-- Canais de contato -->
+      <div class="support-grid">
+        <div class="support-card" onclick="contatoWhatsApp()">
+          <div class="support-icon whatsapp"><i class="fa-brands fa-whatsapp"></i></div>
+          <div class="support-title">WhatsApp</div>
+          <div class="support-desc">Fale conosco agora pelo WhatsApp. Resposta rápida!</div>
+        </div>
+        
+        <div class="support-card" onclick="contatoEmail()">
+          <div class="support-icon email"><i class="fa-solid fa-envelope"></i></div>
+          <div class="support-title">E-mail</div>
+          <div class="support-desc">Envie um e-mail e responderemos em até 24h</div>
+        </div>
+        
+        <div class="support-card" onclick="scrollToFaq()">
+          <div class="support-icon faq"><i class="fa-solid fa-circle-question"></i></div>
+          <div class="support-title">Perguntas Frequentes</div>
+          <div class="support-desc">Respostas rápidas para dúvidas comuns</div>
+        </div>
+      </div>
+      
+      <!-- FAQ -->
+      <div class="faq-section" id="faqSection">
+        <div class="faq-title"><i class="fa-solid fa-lightbulb"></i> Perguntas Frequentes</div>
+        
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Como faço um pedido? <i class="fa-solid fa-chevron-down"></i></div>
+          <div class="faq-a">Acesse o <strong>Cardápio</strong>, escolha os itens desejados, clique em <strong>Adicionar</strong> e depois vá para o carrinho flutuante para finalizar. Preencha seu endereço e confirme o pedido!</div>
+        </div>
+        
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Qual o tempo de entrega? <i class="fa-solid fa-chevron-down"></i></div>
+          <div class="faq-a">O tempo médio de entrega é de <strong>30 a 45 minutos</strong>, dependendo da distância e do movimento. Você pode acompanhar seu pedido em tempo real na aba <strong>Meus Pedidos</strong>.</div>
+        </div>
+        
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Qual o valor mínimo do pedido? <i class="fa-solid fa-chevron-down"></i></div>
+          <div class="faq-a">Não temos valor mínimo! Mas em pedidos acima de <strong>R$ 40,00</strong>, o frete é <strong>grátis</strong>. Confira a taxa de entrega na sua região em <strong>Taxa e Entrega</strong>.</div>
+        </div>
+        
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Como funciona o pagamento? <i class="fa-solid fa-chevron-down"></i></div>
+          <div class="faq-a">Aceitamos <strong>dinheiro</strong>, <strong>cartão de débito/crédito</strong> e <strong>Pix</strong>. Escolha a forma de pagamento no checkout antes de finalizar.</div>
+        </div>
+        
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Posso cancelar meu pedido? <i class="fa-solid fa-chevron-down"></i></div>
+          <div class="faq-a">Sim! Você pode cancelar o pedido em até <strong>5 minutos</strong> após confirmação. Depois disso, entre em contato via WhatsApp que verificaremos a possibilidade.</div>
+        </div>
+        
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Entregam na minha região? <i class="fa-solid fa-chevron-down"></i></div>
+          <div class="faq-a">Confira as regiões atendidas e taxas em <strong>Taxa e Entrega</strong>. Se sua região não aparecer, entre em contato que verificaremos!</div>
+        </div>
+        
+        <div class="faq-item" onclick="toggleFaq(this)">
+          <div class="faq-q">Como usar um cupom de desconto? <i class="fa-solid fa-chevron-down"></i></div>
+          <div class="faq-a">No checkout, você encontrará um campo <strong>"Cupom de Desconto"</strong>. Digite o código (ex: <strong>MAMA10</strong>) e clique em aplicar. O desconto será calculado automaticamente!</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="../AppJs/shared.js"></script>
+<script>
+function contatoWhatsApp() {
+  var numero = '5534999098073';
+  var msg = encodeURIComponent('Olá! Preciso de ajuda com o MamaFood.');
+  window.open('https://wa.me/' + numero + '?text=' + msg, '_blank');
+}
+
+function contatoEmail() {
+  window.location.href = 'mailto:contato@mamafood.com?subject=Suporte MamaFood';
+}
+
+function scrollToFaq() {
+  document.getElementById('faqSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function toggleFaq(el) {
+  var wasOpen = el.classList.contains('open');
+  // Fecha todos
+  document.querySelectorAll('.faq-item').forEach(function(item){
+    item.classList.remove('open');
+  });
+  // Abre o clicado se estava fechado
+  if (!wasOpen) el.classList.add('open');
+}
+
+authGuard(false, function() {
+  // Página carregada
+});
+</script>
+</body>
+</html>

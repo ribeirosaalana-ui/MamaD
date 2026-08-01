@@ -1,0 +1,563 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Taxa e Tempo de Entrega</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+  <link rel="stylesheet" href="../shared.css"/>
+  <style>
+    .calc-wrap { display:grid; grid-template-columns:420px 1fr; gap:24px; align-items:start; }
+    .calc-card { background:var(--white); border-radius:14px; padding:26px; box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:80px; }
+    .calc-card h2 { font-size:1rem; font-weight:800; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--gray-2); display:flex; align-items:center; gap:8px; }
+    /* Resultado */
+    .result-box { background:var(--gray-1); border-radius:12px; padding:20px; margin-top:20px; display:none; }
+    .result-box.show { display:block; }
+    .result-grid { display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-bottom:16px; }
+    .result-item { background:var(--white); border-radius:10px; padding:16px; text-align:center; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .result-item .ri-label { font-size:.72rem; color:var(--gray-3); font-weight:600; text-transform:uppercase; letter-spacing:.05em; margin-bottom:6px; }
+    .result-item .ri-val { font-size:1.6rem; font-weight:900; color:var(--dark); line-height:1; }
+    .result-item .ri-sub { font-size:.75rem; color:var(--gray-3); margin-top:4px; }
+    .result-item.red .ri-val { color:var(--red); }
+    .result-item.green .ri-val { color:var(--green); }
+    .result-item.blue .ri-val { color:var(--blue); }
+    .result-detail { font-size:.83rem; color:var(--gray-4); line-height:1.7; padding-top:12px; border-top:1px solid var(--gray-2); }
+    .result-detail b { color:var(--dark); }
+    /* Mapa */
+    .map-card { background:var(--white); border-radius:14px; overflow:hidden; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .map-card h2 { font-size:1rem; font-weight:800; padding:18px 20px 14px; border-bottom:1px solid var(--gray-2); display:flex; align-items:center; gap:8px; }
+    #map { height:460px; width:100%; }
+    /* Origem salva */
+    .origin-badge { display:flex; align-items:center; gap:8px; background:#f0fdf4; border:1.5px solid #bbf7d0; border-radius:10px; padding:10px 14px; margin-bottom:16px; font-size:.83rem; }
+    .origin-badge i { color:var(--green); }
+    .origin-badge .ob-addr { flex:1; color:var(--dark); font-weight:500; }
+    /* Spinner */
+    .spinner { display:none; width:20px; height:20px; border:3px solid var(--gray-2); border-top-color:var(--red); border-radius:50%; animation:spin .7s linear infinite; margin:0 auto; }
+    .spinner.show { display:block; }
+    @keyframes spin { to { transform:rotate(360deg); } }
+    /* Taxa faixas */
+    .faixa-list { margin-top:16px; }
+    .faixa-list h4 { font-size:.8rem; font-weight:700; color:var(--gray-4); margin-bottom:10px; text-transform:uppercase; letter-spacing:.05em; }
+    .faixa-row { display:flex; align-items:center; gap:10px; padding:8px 12px; border-radius:8px; margin-bottom:6px; font-size:.83rem; }
+    .faixa-row.ativa { background:#fef2f2; border:1.5px solid #fecaca; }
+    .faixa-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; }
+    .faixa-range { flex:1; color:var(--gray-4); }
+    .faixa-price { font-weight:800; color:var(--dark); }
+    .faixa-time  { font-size:.75rem; color:var(--gray-3); }
+    @media(max-width:900px){ .calc-wrap{grid-template-columns:1fr;} .calc-card{position:static;} #map{height:320px;} }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Taxa e Tempo de Entrega</span><span class="topbar-sub"> — cálculo real por rota</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+
+    <div class="content">
+      <div class="calc-wrap">
+
+        <!-- FORMULÁRIO -->
+        <div class="calc-card">
+          <h2><i class="fa-solid fa-route" style="color:var(--red)"></i> Calcular entrega</h2>
+
+          <!-- Origem (endereço da loja salvo no cadastro) -->
+          <div class="origin-badge" id="originBadge">
+            <i class="fa-solid fa-store"></i>
+            <div class="ob-addr" id="originAddr">Carregando endereço da loja...</div>
+          </div>
+
+          <!-- Localização automática -->
+          <div style="display:flex;gap:8px;margin-bottom:16px">
+            <button class="btn-gps" id="btnGps" onclick="usarGPS()" style="flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:11px;border-radius:8px;border:2px solid var(--red);background:var(--white);color:var(--red);font-weight:700;font-size:.85rem;cursor:pointer;transition:all .15s">
+              <i class="fa-solid fa-location-crosshairs"></i> Usar minha localização
+            </button>
+          </div>
+          <div id="gps-status" style="display:none;font-size:.78rem;color:var(--gray-3);margin-bottom:12px;text-align:center">
+            <i class="fa-solid fa-circle-notch fa-spin"></i> Obtendo localização GPS...
+          </div>
+          <div style="font-size:.75rem;color:var(--gray-3);text-align:center;margin-bottom:14px;display:flex;align-items:center;gap:8px">
+            <div style="flex:1;height:1px;background:var(--gray-2)"></div>
+            <span>ou preencha o endereço</span>
+            <div style="flex:1;height:1px;background:var(--gray-2)"></div>
+          </div>
+          <div class="ff">
+            <label>CEP do cliente <span class="req">*</span></label>
+            <input type="text" id="cep-cliente" placeholder="00000-000" maxlength="9"
+              oninput="maskCEPInput(this)" onblur="buscarCEP()"/>
+          </div>
+          <div class="ff">
+            <label>Rua do cliente</label>
+            <input type="text" id="rua-cliente" placeholder="Preenchido automaticamente pelo CEP"/>
+          </div>
+          <div class="ff-row">
+            <div class="ff">
+              <label>Número <span class="req">*</span></label>
+              <input type="text" id="num-cliente" placeholder="Nº"/>
+            </div>
+            <div class="ff">
+              <label>Bairro</label>
+              <input type="text" id="bairro-cliente" placeholder="Bairro"/>
+            </div>
+          </div>
+          <div class="ff-row">
+            <div class="ff">
+              <label>Cidade</label>
+              <input type="text" id="cidade-cliente" placeholder="Cidade"/>
+            </div>
+            <div class="ff">
+              <label>Estado</label>
+              <input type="text" id="estado-cliente" placeholder="UF" maxlength="2"/>
+            </div>
+          </div>
+
+          <button class="btn-primary" style="width:100%;margin-top:4px" onclick="calcular()">
+            <i class="fa-solid fa-calculator"></i> Calcular taxa e tempo
+          </button>
+
+          <div class="spinner" id="spinner"></div>
+
+          <!-- Resultado -->
+          <div class="result-box" id="resultBox">            <div class="result-grid">
+              <div class="result-item red">
+                <div class="ri-label">Taxa de entrega</div>
+                <div class="ri-val" id="res-taxa">—</div>
+                <div class="ri-sub">valor cobrado</div>
+              </div>
+              <div class="result-item blue">
+                <div class="ri-label">Tempo estimado</div>
+                <div class="ri-val" id="res-tempo">—</div>
+                <div class="ri-sub">por rota real</div>
+              </div>
+              <div class="result-item">
+                <div class="ri-label">Distância</div>
+                <div class="ri-val" id="res-dist">—</div>
+                <div class="ri-sub">km por rua</div>
+              </div>
+              <div class="result-item green">
+                <div class="ri-label">Chegada</div>
+                <div class="ri-val" id="res-chegada">—</div>
+                <div class="ri-sub">horário estimado</div>
+              </div>
+            </div>
+            <div class="result-detail" id="res-detail"></div>
+          </div>
+
+          <!-- fim formulário -->
+        </div>
+
+        <!-- MAPA -->
+        <div class="map-card">
+          <h2><i class="fa-solid fa-map-location-dot" style="color:var(--red)"></i> Rota no mapa <span style="font-size:.72rem;color:var(--gray-3);font-weight:400;margin-left:4px">— ou clique no mapa para marcar o destino</span></h2>
+          <div id="map"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="../AppJs/shared.js"></script>
+<script>
+// ── Variáveis globais ──────────────────────────────────────────────
+var map, routeLayer, markerOrigem, markerDestino;
+var coordOrigem = null;
+
+// ── GPS: pega localização do browser ──────────────────────────────
+function usarGPS() {
+  if (!navigator.geolocation) {
+    showToast('Seu navegador não suporta geolocalização', 'err'); return;
+  }
+  document.getElementById('gps-status').style.display = 'block';
+  document.getElementById('btnGps').disabled = true;
+  navigator.geolocation.getCurrentPosition(
+    function(pos) {
+      document.getElementById('gps-status').style.display = 'none';
+      document.getElementById('btnGps').disabled = false;
+      var lat = pos.coords.latitude;
+      var lng = pos.coords.longitude;
+      showToast('📍 Localização obtida! Calculando rota...', 'ok');
+      calcularPorCoordenadas(lat, lng);
+    },
+    function(err) {
+      document.getElementById('gps-status').style.display = 'none';
+      document.getElementById('btnGps').disabled = false;
+      var msgs = {
+        1: 'Permissão negada. Libere a localização no navegador.',
+        2: 'Localização indisponível. Tente digitar o endereço.',
+        3: 'Tempo esgotado. Tente novamente.'
+      };
+      showToast(msgs[err.code] || 'Erro ao obter localização', 'err');
+    },
+    { timeout: 10000, enableHighAccuracy: true }
+  );
+}
+
+// ── Calcula direto pelas coordenadas (GPS ou clique no mapa) ───────
+function calcularPorCoordenadas(lat, lng) {
+  // Reverse geocode para preencher os campos
+  var url = 'https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&addressdetails=1';
+  fetch(url, { headers: { 'Accept-Language': 'pt-BR', 'User-Agent': 'MamaFood-Delivery/1.0' } })
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      var addr = d.address || {};
+      // Preenche os campos
+      document.getElementById('rua-cliente').value    = addr.road || addr.pedestrian || '';
+      document.getElementById('num-cliente').value    = addr.house_number || 'S/N';
+      document.getElementById('bairro-cliente').value = addr.suburb || addr.neighbourhood || addr.quarter || '';
+      document.getElementById('cidade-cliente').value = addr.city || addr.town || addr.village || addr.municipality || '';
+      document.getElementById('estado-cliente').value = addr.state_code || (addr.state ? addr.state.substring(0,2).toUpperCase() : '');
+      document.getElementById('cep-cliente').value    = addr.postcode || '';
+    })
+    .catch(function() {});
+
+  // Calcula rota direto sem precisar de geocode
+  var dest = { lat: lat, lng: lng, display: 'Localização selecionada' };
+  document.getElementById('spinner').classList.add('show');
+  document.getElementById('resultBox').classList.remove('show');
+
+  var lojaPromise = window._lojaCoord
+    ? Promise.resolve(window._lojaCoord)
+    : Promise.resolve({ lat: -19.3147, lng: -47.5291, display: 'Rua São Vicente de Paula, 310, Santa Juliana, MG' });
+
+  lojaPromise.then(function(orig) {
+    if (!map) initMap(lat, lng);
+    if (markerOrigem) map.removeLayer(markerOrigem);
+    if (markerDestino) map.removeLayer(markerDestino);
+    markerOrigem  = L.marker([orig.lat, orig.lng], { icon: iconOrigem })
+      .bindPopup('<b>🍔 Casa da Mama</b><br/>Rua São Vicente de Paula, 310 — Santa Juliana, MG').addTo(map);
+    markerDestino = L.marker([lat, lng], { icon: iconDestino })
+      .bindPopup('<b>📍 Sua localização</b>').addTo(map).openPopup();
+
+    return getRoute(orig.lat, orig.lng, lat, lng).then(function(rota) {
+      document.getElementById('spinner').classList.remove('show');
+      if (!rota) { showToast('Não foi possível calcular a rota', 'err'); return; }
+      exibirResultado(rota, orig);
+    });
+  });
+}
+
+// ── Exibe resultado no card ────────────────────────────────────────
+function exibirResultado(rota, orig) {
+  var km       = rota.distKm;
+  var faixa    = calcTaxa(km);
+  var minRota  = Math.ceil(rota.duracaoS / 60);
+  var minTotal = minRota + 10;
+  var chegada  = new Date(Date.now() + minTotal * 60000);
+  var hChegada = String(chegada.getHours()).padStart(2,'0') + ':' + String(chegada.getMinutes()).padStart(2,'0');
+
+  if (routeLayer) map.removeLayer(routeLayer);
+  routeLayer = L.geoJSON(rota.geojson, { style: { color:'#ea1d2c', weight:5, opacity:.75 } }).addTo(map);
+  map.fitBounds(routeLayer.getBounds(), { padding:[40,40] });
+
+  document.getElementById('res-taxa').textContent    = 'R$ ' + faixa.taxa.toFixed(2).replace('.',',');
+  document.getElementById('res-tempo').textContent   = minTotal + ' min';
+  document.getElementById('res-dist').textContent    = km.toFixed(1).replace('.',',') + ' km';
+  document.getElementById('res-chegada').textContent = hChegada;
+  document.getElementById('res-detail').innerHTML =
+    '<b>Rota:</b> ' + km.toFixed(2).replace('.',',') + ' km por estrada<br/>' +
+    '<b>Deslocamento:</b> ' + minRota + ' min<br/>' +
+    '<b>Preparo:</b> +10 min<br/>' +
+    '<b>Total:</b> ' + minTotal + ' min → chegada às ' + hChegada;
+
+  document.getElementById('resultBox').classList.add('show');
+  highlightFaixa(faixa.id);
+  if (markerOrigem) markerOrigem.openPopup();
+}
+
+// ── Tabela de taxas ────────────────────────────────────────────────
+var FAIXAS = [
+  { max: 2,   taxa: 3.99,  tempo: 15, id: 'f0' },
+  { max: 5,   taxa: 6.99,  tempo: 25, id: 'f1' },
+  { max: 10,  taxa: 10.99, tempo: 35, id: 'f2' },
+  { max: 20,  taxa: 16.99, tempo: 50, id: 'f3' },
+  { max: 9999,taxa: 24.99, tempo: 65, id: 'f4' }
+];
+
+function calcTaxa(km) {
+  for (var i = 0; i < FAIXAS.length; i++) {
+    if (km <= FAIXAS[i].max) return FAIXAS[i];
+  }
+  return FAIXAS[FAIXAS.length - 1];
+}
+
+function highlightFaixa(faixaId) {
+  FAIXAS.forEach(function(f) {
+    var el = document.getElementById(f.id);
+    if (el) el.classList.toggle('ativa', f.id === faixaId);
+  });
+}
+
+// ── Inicializa mapa ────────────────────────────────────────────────
+function initMap(lat, lng) {
+  if (map) { map.setView([lat, lng], 13); return; }
+  map = L.map('map').setView([lat, lng], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© <a href="https://www.openstreetmap.org/">OpenStreetMap</a>',
+    maxZoom: 19
+  }).addTo(map);
+
+  // Clique no mapa → calcula rota para o ponto clicado
+  map.on('click', function(e) {
+    showToast('📍 Ponto marcado! Calculando rota...', 'info');
+    calcularPorCoordenadas(e.latlng.lat, e.latlng.lng);
+  });
+}
+
+var iconOrigem = L.divIcon({ html:'<div style="background:#ea1d2c;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>', iconSize:[16,16], iconAnchor:[8,8] });
+var iconDestino = L.divIcon({ html:'<div style="background:#2563eb;width:16px;height:16px;border-radius:50%;border:3px solid #fff;box-shadow:0 2px 6px rgba(0,0,0,.4)"></div>', iconSize:[16,16], iconAnchor:[8,8] });
+
+// ── Geocodifica endereço → coordenadas (Nominatim com fallback) ────
+function geocode(address) {
+  // Tenta com o endereço completo primeiro
+  return geocodeQuery(address)
+    .then(function(r) {
+      if (r) return r;
+      // Fallback 1: só cidade + estado + brasil
+      var parts = address.split(',');
+      var short  = parts.slice(-3).join(',').trim();
+      return geocodeQuery(short);
+    })
+    .then(function(r) {
+      if (r) return r;
+      // Fallback 2: extrai CEP e tenta pelo CEP
+      var cepMatch = address.match(/\b(\d{5}-?\d{3})\b/);
+      if (cepMatch) return geocodeQuery(cepMatch[1] + ', Brasil');
+      return null;
+    });
+}
+
+function geocodeQuery(q) {
+  var url = 'https://nominatim.openstreetmap.org/search' +
+    '?format=json&limit=1&addressdetails=1&countrycodes=br' +
+    '&q=' + encodeURIComponent(q);
+  return fetch(url, {
+    headers: {
+      'Accept-Language': 'pt-BR,pt;q=0.9',
+      'User-Agent': 'MamaFood-Delivery/1.0'
+    }
+  })
+  .then(function(r) { return r.json(); })
+  .then(function(d) {
+    if (!d || !d.length) return null;
+    return { lat: parseFloat(d[0].lat), lng: parseFloat(d[0].lon), display: d[0].display_name };
+  })
+  .catch(function() { return null; });
+}
+
+// ── Rota real via OSRM (gratuito, sem API key) ─────────────────────
+function getRoute(oLat, oLng, dLat, dLng) {
+  var url = 'https://router.project-osrm.org/route/v1/driving/' +
+    oLng + ',' + oLat + ';' + dLng + ',' + dLat +
+    '?overview=full&geometries=geojson&steps=false';
+  return fetch(url)
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d.routes || !d.routes.length) return null;
+      var route = d.routes[0];
+      return {
+        distKm:   route.distance / 1000,
+        duracaoS: route.duration,
+        geojson:  route.geometry
+      };
+    });
+}
+
+// ── Máscara CEP ────────────────────────────────────────────────────
+function maskCEPInput(el) {
+  var v = el.value.replace(/\D/g,'').slice(0,8);
+  if (v.length > 5) v = v.slice(0,5) + '-' + v.slice(5);
+  el.value = v;
+}
+
+// ── Busca CEP do cliente ───────────────────────────────────────────
+function buscarCEP() {
+  var cep = document.getElementById('cep-cliente').value.replace(/\D/g,'');
+  if (cep.length !== 8) return;
+  fetch('https://viacep.com.br/ws/' + cep + '/json/')
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (d.erro) return;
+      document.getElementById('rua-cliente').value    = d.logradouro || '';
+      document.getElementById('bairro-cliente').value = d.bairro     || '';
+      document.getElementById('cidade-cliente').value = d.localidade || '';
+      document.getElementById('estado-cliente').value = d.uf         || '';
+      document.getElementById('num-cliente').focus();
+    })
+    .catch(function() {});
+}
+
+// ── Calcula ────────────────────────────────────────────────────────
+function calcular() {
+  var rua     = document.getElementById('rua-cliente').value.trim();
+  var num     = document.getElementById('num-cliente').value.trim();
+  var bairro  = document.getElementById('bairro-cliente').value.trim();
+  var cidade  = document.getElementById('cidade-cliente').value.trim();
+  var estado  = document.getElementById('estado-cliente').value.trim();
+
+  var addrCliente = '';
+  // Tenta montar o mais completo possível
+  if (rua && num && cidade) {
+    addrCliente = rua + ', ' + num + (bairro ? ', ' + bairro : '') + ', ' + cidade + (estado ? ' - ' + estado : '') + ', Brasil';
+  } else if (cidade) {
+    // Só tem cidade — usa CEP se disponível
+    var cep = document.getElementById('cep-cliente').value.replace(/\D/g,'');
+    if (cep.length === 8) {
+      addrCliente = cep.slice(0,5) + '-' + cep.slice(5) + ', ' + cidade + ', Brasil';
+    } else {
+      addrCliente = cidade + (estado ? ', ' + estado : '') + ', Brasil';
+    }
+  } else {
+    var cep2 = document.getElementById('cep-cliente').value.replace(/\D/g,'');
+    if (cep2.length === 8) {
+      addrCliente = cep2.slice(0,5) + '-' + cep2.slice(5) + ', Brasil';
+    }
+  }
+
+  if (!addrCliente) {
+    showToast('Informe ao menos a cidade do cliente', 'err');
+    return;
+  }
+
+  document.getElementById('spinner').classList.add('show');
+  document.getElementById('resultBox').classList.remove('show');
+  showToast('🔍 Buscando rota...', 'info');
+
+  // Usa coordenada da loja já carregada (window._lojaCoord) ou geocodifica se necessário
+  var lojaPromise;
+  if (window._lojaCoord) {
+    lojaPromise = Promise.resolve(window._lojaCoord);
+  } else {
+    var p = getParceiro();
+    var addrLoja = p
+      ? [p.rua, p.numero, p.bairro, p.cidade, p.estado, 'Brasil'].filter(Boolean).join(', ')
+      : 'Rua São Vicente de Paula, 310, Santa Juliana, MG, Brasil';
+    lojaPromise = geocode(addrLoja);
+  }
+
+  Promise.all([lojaPromise, geocode(addrCliente)])
+    .then(function(results) {
+      var orig = results[0];
+      var dest = results[1];
+
+      if (!orig) { showToast('Não foi possível localizar o endereço da loja', 'err'); document.getElementById('spinner').classList.remove('show'); return; }
+      if (!dest) {
+        showToast('Endereço do cliente não encontrado. Verifique CEP, rua e cidade.', 'err');
+        document.getElementById('spinner').classList.remove('show');
+        return;
+      }
+
+      if (!map) initMap(orig.lat, orig.lng);
+
+      if (markerOrigem) map.removeLayer(markerOrigem);
+      if (markerDestino) map.removeLayer(markerDestino);
+      markerOrigem  = L.marker([orig.lat, orig.lng], { icon: iconOrigem })
+        .bindPopup('<b>🍔 Casa da Mama</b><br/>Rua São Vicente de Paula, 310 — Santa Juliana, MG').addTo(map);
+      markerDestino = L.marker([dest.lat, dest.lng], { icon: iconDestino })
+        .bindPopup('<b>📍 Cliente</b><br/>' + esc(addrCliente)).addTo(map);
+
+      return getRoute(orig.lat, orig.lng, dest.lat, dest.lng).then(function(rota) {
+        document.getElementById('spinner').classList.remove('show');
+        if (!rota) { showToast('Não foi possível calcular a rota', 'err'); return; }
+        exibirResultado(rota, orig);
+        markerOrigem.openPopup();
+      });
+    })
+    .catch(function(err) {
+      document.getElementById('spinner').classList.remove('show');
+      showToast('Erro ao calcular: ' + err.message, 'err');
+    });
+}
+
+function esc(s) { return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+// ── INIT ───────────────────────────────────────────────────────────
+authGuard(false, function() {
+  // Tenta pegar coordenadas do .env primeiro, depois cai no cadastro
+  fetch('../.env?t=' + Date.now())
+    .then(function(r){ return r.text(); })
+    .then(function(txt){
+      var lat  = parseEnv(txt, 'LOJA_LAT');
+      var lng  = parseEnv(txt, 'LOJA_LNG');
+      var rua  = parseEnv(txt, 'LOJA_RUA')    || '';
+      var num  = parseEnv(txt, 'LOJA_NUMERO') || '';
+      var cid  = parseEnv(txt, 'LOJA_CIDADE') || '';
+      var uf   = parseEnv(txt, 'LOJA_ESTADO') || '';
+      var cep  = parseEnv(txt, 'LOJA_CEP')    || '';
+
+      var addrDisplay = [rua, num, cid, uf, cep].filter(Boolean).join(', ');
+
+      if (lat && lng) {
+        // Usa coordenadas fixas do .env
+        var lojaLat = parseFloat(lat);
+        var lojaLng = parseFloat(lng);
+        document.getElementById('originAddr').textContent = addrDisplay || 'Rua São Vicente de Paula, 310 — Santa Juliana, MG';
+        window._lojaCoord = { lat: lojaLat, lng: lojaLng, display: addrDisplay };
+        initMap(lojaLat, lojaLng);
+        markerOrigem = L.marker([lojaLat, lojaLng], { icon: iconOrigem })
+          .bindPopup('<b>🍔 Casa da Mama</b><br/>' + esc(addrDisplay))
+          .addTo(map);
+        markerOrigem.openPopup();
+      } else {
+        // Fallback: endereço do cadastro
+        var p = getParceiro();
+        if (p && p.cidade) {
+          var addr = [p.rua, p.numero, p.bairro, p.cidade, p.estado, 'Brasil'].filter(Boolean).join(', ');
+          document.getElementById('originAddr').textContent = addr;
+          geocode(addr).then(function(c) {
+            if (c) {
+              window._lojaCoord = c;
+              initMap(c.lat, c.lng);
+              markerOrigem = L.marker([c.lat, c.lng], { icon: iconOrigem })
+                .bindPopup('<b>🏪 Sua loja</b><br/>' + esc(addr)).addTo(map);
+            } else {
+              initMap(-19.3147, -47.5291);
+            }
+          });
+        } else {
+          document.getElementById('originAddr').textContent = 'Rua São Vicente de Paula, 310 — Santa Juliana, MG';
+          initMap(-19.3147, -47.5291);
+          window._lojaCoord = { lat: -19.3147, lng: -47.5291, display: 'Rua São Vicente de Paula, 310, Santa Juliana, MG' };
+          markerOrigem = L.marker([-19.3147, -47.5291], { icon: iconOrigem })
+            .bindPopup('<b>🍔 Casa da Mama</b><br/>Rua São Vicente de Paula, 310 — Santa Juliana, MG')
+            .addTo(map);
+          markerOrigem.openPopup();
+        }
+      }
+    })
+    .catch(function(){
+      // Sem .env — usa coordenadas fixas
+      document.getElementById('originAddr').textContent = 'Rua São Vicente de Paula, 310 — Santa Juliana, MG';
+      window._lojaCoord = { lat: -19.3147, lng: -47.5291, display: 'Rua São Vicente de Paula, 310, Santa Juliana, MG' };
+      initMap(-19.3147, -47.5291);
+      markerOrigem = L.marker([-19.3147, -47.5291], { icon: iconOrigem })
+        .bindPopup('<b>🍔 Casa da Mama</b><br/>Rua São Vicente de Paula, 310 — Santa Juliana, MG')
+        .addTo(map);
+      markerOrigem.openPopup();
+    });
+});
+
+function parseEnv(txt, key) {
+  var m = txt.match(new RegExp('^' + key + '\\s*=\\s*(.+)$', 'm'));
+  return m ? m[1].trim() : '';
+}
+</script>
+</body>
+</html>

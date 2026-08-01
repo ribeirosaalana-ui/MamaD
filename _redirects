@@ -1,0 +1,9 @@
+# Redirects para MamaFood
+
+# Redirecionar todas as rotas para index.html (SPA)
+/*    /index.html   200
+
+# Manter as pastas acessíveis
+/SiteHtmls/*  /SiteHtmls/:splat  200
+/AppJs/*      /AppJs/:splat      200
+/Css/*        /Css/:splat        200

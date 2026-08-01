@@ -1,0 +1,651 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Finalizar Pedido</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../shared.css"/>
+  <style>
+    .checkout-container { max-width:900px; margin:0 auto; display:grid; grid-template-columns:1fr 360px; gap:24px; }
+    .checkout-main { display:flex; flex-direction:column; gap:20px; }
+    .checkout-sidebar { position:sticky; top:24px; height:fit-content; }
+    .section-card { background:var(--white); border-radius:14px; padding:24px; border:1.5px solid var(--gray-2); }
+    .section-title { font-size:1.15rem; font-weight:800; color:var(--dark); margin-bottom:4px; display:flex; align-items:center; gap:10px; }
+    .section-title i { color:var(--red); font-size:1.1rem; }
+    .section-sub { font-size:.82rem; color:var(--gray-3); margin-bottom:18px; }
+    
+    /* Opções de entrega */
+    .delivery-option { border:1.5px solid var(--gray-2); border-radius:10px; padding:16px; cursor:pointer; transition:all .15s; margin-bottom:12px; }
+    .delivery-option:hover { border-color:var(--red); background:rgba(234,29,44,.02); }
+    .delivery-option.selected { border-color:var(--red); background:rgba(234,29,44,.05); position:relative; }
+    .delivery-option.selected::before { content:'✓'; position:absolute; top:12px; right:12px; width:24px; height:24px; background:var(--red); color:#fff; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:900; font-size:.85rem; }
+    .delivery-option-icon { font-size:1.3rem; margin-bottom:8px; display:block; }
+    .delivery-option-title { font-size:.95rem; font-weight:700; color:var(--dark); margin-bottom:3px; }
+    .delivery-option-desc { font-size:.78rem; color:var(--gray-3); line-height:1.4; }
+    
+    /* Campo de endereço */
+    .address-input { display:flex; gap:8px; margin-top:12px; }
+    .address-input input { flex:1; padding:12px 14px; border:1.5px solid var(--gray-2); border-radius:8px; font-size:.9rem; font-family:inherit; }
+    .address-input input:focus { outline:none; border-color:var(--red); }
+    .address-input button { padding:12px 20px; background:var(--red); color:#fff; border:none; border-radius:8px; font-weight:700; cursor:pointer; font-family:inherit; font-size:.9rem; }
+    .address-input button:hover { background:var(--red-dark); }
+    .address-display { margin-top:12px; padding:12px; background:var(--gray-1); border-radius:8px; font-size:.85rem; color:var(--gray-4); }
+    
+    /* Botão de localização atual */
+    .btn-location { width:100%; padding:12px; border:1.5px solid var(--gray-2); background:var(--white); border-radius:8px; font-family:inherit; font-size:.88rem; font-weight:600; color:var(--dark); cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; transition:all .15s; margin-top:12px; }
+    .btn-location:hover { border-color:var(--red); color:var(--red); background:rgba(234,29,44,.02); }
+    .btn-location i { font-size:.95rem; }
+    .btn-location.loading { opacity:.6; cursor:wait; }
+    
+    /* Resumo */
+    .cart-item { display:flex; align-items:center; gap:12px; padding:12px 0; border-bottom:1px solid var(--gray-2); }
+    .cart-item:last-child { border:none; }
+    .cart-item-emoji { font-size:2rem; width:50px; height:50px; background:var(--gray-1); border-radius:10px; display:flex; align-items:center; justify-content:center; }
+    .cart-item-info { flex:1; }
+    .cart-item-name { font-size:.9rem; font-weight:700; color:var(--dark); }
+    .cart-item-qty { font-size:.78rem; color:var(--gray-3); }
+    .cart-item-price { font-size:.95rem; font-weight:800; color:var(--dark); }
+    .cart-item-actions { display:flex; gap:8px; align-items:center; }
+    .qty-btn { width:28px; height:28px; border:1.5px solid var(--gray-2); background:var(--white); border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.85rem; font-weight:700; color:var(--gray-4); }
+    .qty-btn:hover { border-color:var(--red); color:var(--red); }
+    .item-qty-display { font-size:.88rem; font-weight:700; color:var(--dark); min-width:20px; text-align:center; }
+    
+    .cart-total { padding-top:16px; border-top:2px solid var(--gray-2); margin-top:12px; }
+    .cart-total-row { display:flex; justify-content:space-between; margin-bottom:8px; font-size:.9rem; color:var(--gray-4); }
+    .cart-total-row.final { font-size:1.15rem; font-weight:900; color:var(--dark); margin-top:12px; }
+    
+    .btn-finalizar { width:100%; padding:16px; background:var(--red); color:#fff; border:none; border-radius:10px; font-size:1.05rem; font-weight:800; cursor:pointer; margin-top:16px; transition:background .15s; font-family:inherit; }
+    .btn-finalizar:hover { background:var(--red-dark); }
+    .btn-finalizar:disabled { opacity:.5; cursor:not-allowed; }
+    
+    /* Permissão de localização */
+    .location-permission { text-align:center; padding:20px; }
+    .location-permission i { font-size:2.5rem; color:var(--gray-3); margin-bottom:12px; }
+    .location-permission p { font-size:.88rem; color:var(--gray-3); line-height:1.5; margin-bottom:16px; }
+    .location-permission-btns { display:flex; gap:8px; justify-content:center; }
+    .location-permission-btns button { padding:10px 20px; border-radius:8px; font-family:inherit; font-size:.85rem; font-weight:700; cursor:pointer; }
+    .btn-permitir { background:var(--red); color:#fff; border:none; }
+    .btn-permitir:hover { background:var(--red-dark); }
+    .btn-bloquear { background:var(--gray-1); color:var(--gray-4); border:1px solid var(--gray-2); }
+    
+    @media (max-width:900px) {
+      .checkout-container { grid-template-columns:1fr; }
+      .checkout-sidebar { position:static; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Finalizar Pedido</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="checkout-container">
+        
+        <!-- Coluna principal -->
+        <div class="checkout-main">
+          
+          <!-- Opções de entrega -->
+          <div class="section-card">
+            <h2 class="section-title"><i class="fa-solid fa-location-arrow"></i> Opções de entrega</h2>
+            <p class="section-sub">Escolha onde deseja receber</p>
+            
+            <div class="delivery-option selected" id="opt-endereco" onclick="selecionarOpcao('endereco')">
+              <span class="delivery-option-icon">🏠</span>
+              <div class="delivery-option-title">Entregar no meu endereço</div>
+              <div class="delivery-option-desc">Informe seu endereço ou use sua localização atual</div>
+              
+              <div id="enderecoForm" style="display:block;">
+                <button class="btn-location" onclick="usarLocalizacaoAtual()" id="btnGeolocalizacao">
+                  <i class="fa-solid fa-location-crosshairs"></i>
+                  Usar minha localização atual
+                </button>
+                
+                <div class="address-input">
+                  <input type="text" id="cepInput" placeholder="Digite seu CEP (00000-000)" maxlength="9" />
+                  <button onclick="buscarCEP()">Buscar CEP</button>
+                </div>
+                
+                <div class="address-display" id="addressDisplay" style="display:none;">
+                  <strong>Endereço:</strong><br/>
+                  <span id="addressText"></span>
+                </div>
+              </div>
+            </div>
+            
+            <div class="delivery-option" id="opt-retirada" onclick="selecionarOpcao('retirada')">
+              <span class="delivery-option-icon">🏪</span>
+              <div class="delivery-option-title">Ir até o estabelecimento</div>
+              <div class="delivery-option-desc">Retire seu pedido diretamente no local</div>
+            </div>
+          </div>
+          
+          <!-- Forma de Pagamento -->
+          <div class="section-card">
+            <h2 class="section-title"><i class="fa-solid fa-credit-card"></i> Forma de pagamento</h2>
+            <p class="section-sub">Como você prefere pagar?</p>
+            
+            <div class="delivery-option selected" id="pay-cartao" onclick="selecionarPagamento('cartao')">
+              <span class="delivery-option-icon">💳</span>
+              <div class="delivery-option-title">Cartão de Crédito/Débito</div>
+              <div class="delivery-option-desc">Pagamento na entrega com máquina</div>
+            </div>
+            
+            <div class="delivery-option" id="pay-dinheiro" onclick="selecionarPagamento('dinheiro')">
+              <span class="delivery-option-icon">💵</span>
+              <div class="delivery-option-title">Dinheiro</div>
+              <div class="delivery-option-desc">Pagamento em espécie na entrega</div>
+              
+              <div id="trocoForm" style="display:none; margin-top:12px;">
+                <div class="address-input">
+                  <input type="text" id="trocoInput" placeholder="Precisa de troco para quanto?" />
+                </div>
+              </div>
+            </div>
+            
+            <div class="delivery-option" id="pay-pix" onclick="selecionarPagamento('pix')">
+              <span class="delivery-option-icon">📱</span>
+              <div class="delivery-option-title">PIX / QR Code</div>
+              <div class="delivery-option-desc">Pagamento via PIX antes da entrega</div>
+            </div>
+          </div>
+          
+        </div>
+        
+        <!-- Sidebar - Resumo do Pedido -->
+        <div class="checkout-sidebar">
+          <div class="section-card">
+            <h2 class="section-title">Resumo</h2>
+            <div id="cartItems"></div>
+            
+            <div class="cart-total">
+              <div class="cart-total-row">
+                <span>Subtotal</span>
+                <span id="subtotal">R$ 0,00</span>
+              </div>
+              <div class="cart-total-row">
+                <span>Taxa de entrega</span>
+                <span id="taxaEntrega">A calcular</span>
+              </div>
+              <div class="cart-total-row final">
+                <span>Total</span>
+                <span id="total">R$ 0,00</span>
+              </div>
+            </div>
+            
+            <button class="btn-finalizar" onclick="finalizarPedido()" id="btnFinalizar" disabled>
+              <i class="fa-solid fa-check"></i> Finalizar Pedido
+            </button>
+          </div>
+        </div>
+        
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="../AppJs/shared.js"></script>
+<script>
+var opcaoSelecionada = 'endereco';
+var enderecoUsuario = null;
+var formaPagamento = 'cartao'; // Padrão: cartão
+var trocoValor = null;
+
+function selecionarPagamento(forma) {
+  formaPagamento = forma;
+  
+  // Remove seleção anterior
+  document.getElementById('pay-cartao').classList.remove('selected');
+  document.getElementById('pay-dinheiro').classList.remove('selected');
+  document.getElementById('pay-pix').classList.remove('selected');
+  
+  // Adiciona seleção atual
+  document.getElementById('pay-' + forma).classList.add('selected');
+  
+  // Mostra/esconde campo de troco
+  if (forma === 'dinheiro') {
+    document.getElementById('trocoForm').style.display = 'block';
+  } else {
+    document.getElementById('trocoForm').style.display = 'none';
+    trocoValor = null;
+  }
+  
+  atualizarBotaoFinalizar();
+}
+
+function selecionarOpcao(opcao) {
+  opcaoSelecionada = opcao;
+  document.getElementById('opt-endereco').classList.remove('selected');
+  document.getElementById('opt-retirada').classList.remove('selected');
+  document.getElementById('opt-'+opcao).classList.add('selected');
+  
+  if(opcao === 'retirada') {
+    document.getElementById('taxaEntrega').textContent = 'Grátis';
+    enderecoUsuario = 'RETIRADA_LOCAL';
+  } else {
+    document.getElementById('taxaEntrega').textContent = 'A calcular';
+    enderecoUsuario = null;
+  }
+  
+  atualizarBotaoFinalizar();
+}
+
+function usarLocalizacaoAtual() {
+  var btn = document.getElementById('btnGeolocalizacao');
+  
+  if (!navigator.geolocation) {
+    showToast('⚠️ Seu navegador não suporta geolocalização', 'err');
+    return;
+  }
+  
+  btn.classList.add('loading');
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Obtendo localização...';
+  
+  navigator.geolocation.getCurrentPosition(
+    function(position) {
+      var lat = position.coords.latitude;
+      var lng = position.coords.longitude;
+      
+      // Usar API de geocoding reverso do OpenStreetMap (Nominatim) - gratuita
+      fetch('https://nominatim.openstreetmap.org/reverse?format=json&lat=' + lat + '&lon=' + lng + '&zoom=18&addressdetails=1', {
+        headers: {
+          'User-Agent': 'MamaFood-App'
+        }
+      })
+      .then(function(response) { return response.json(); })
+      .then(function(data) {
+        console.log('📍 Endereço detectado:', data);
+        
+        var address = data.address || {};
+        var enderecoCompleto = '';
+        
+        // Monta o endereço a partir dos dados
+        var rua = address.road || address.street || address.pedestrian || '';
+        var numero = address.house_number || 'S/N';
+        var bairro = address.suburb || address.neighbourhood || address.district || '';
+        var cidade = address.city || address.town || address.village || '';
+        var estado = address.state || '';
+        
+        if (rua) enderecoCompleto += rua;
+        if (numero && numero !== 'S/N') enderecoCompleto += ', ' + numero;
+        if (bairro) enderecoCompleto += ' - ' + bairro;
+        if (cidade) enderecoCompleto += ', ' + cidade;
+        if (estado) enderecoCompleto += '/' + estado;
+        
+        // Se não conseguiu montar endereço, usa o display_name
+        if (!enderecoCompleto.trim()) {
+          enderecoCompleto = data.display_name || 'Endereço detectado';
+        }
+        
+        enderecoUsuario = {
+          tipo: 'geolocalizacao',
+          lat: lat,
+          lng: lng,
+          endereco: enderecoCompleto,
+          rua: rua,
+          numero: numero,
+          bairro: bairro,
+          cidade: cidade,
+          estado: estado
+        };
+        
+        document.getElementById('addressDisplay').style.display = 'block';
+        document.getElementById('addressText').innerHTML = 
+          '<strong>📍 Localização detectada:</strong><br/>' + 
+          enderecoCompleto + '<br/>' +
+          '<small style="color:#999;margin-top:4px;display:block">Lat: ' + lat.toFixed(6) + ', Lng: ' + lng.toFixed(6) + '</small>';
+        
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Localização detectada';
+        btn.style.background = '#10b981';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#10b981';
+        
+        showToast('✅ Endereço detectado com sucesso!', 'ok');
+        
+        document.getElementById('taxaEntrega').textContent = 'R$ 5,00';
+        atualizarBotaoFinalizar();
+      })
+      .catch(function(error) {
+        console.error('Erro ao buscar endereço:', error);
+        
+        // Fallback: usa só as coordenadas
+        enderecoUsuario = {
+          tipo: 'geolocalizacao',
+          lat: lat,
+          lng: lng,
+          endereco: 'Localização detectada (coordenadas)'
+        };
+        
+        document.getElementById('addressDisplay').style.display = 'block';
+        document.getElementById('addressText').innerHTML = 
+          '<strong>📍 Localização detectada:</strong><br/>' +
+          'Latitude: ' + lat.toFixed(6) + '<br/>' +
+          'Longitude: ' + lng.toFixed(6) + '<br/>' +
+          '<small style="color:#999">Endereço será confirmado no pedido</small>';
+        
+        btn.classList.remove('loading');
+        btn.innerHTML = '<i class="fa-solid fa-check"></i> Localização detectada';
+        btn.style.background = '#10b981';
+        btn.style.color = '#fff';
+        btn.style.borderColor = '#10b981';
+        
+        showToast('✅ Localização obtida (coordenadas)', 'ok');
+        
+        document.getElementById('taxaEntrega').textContent = 'R$ 5,00';
+        atualizarBotaoFinalizar();
+      });
+    },
+    function(error) {
+      btn.classList.remove('loading');
+      btn.innerHTML = '<i class="fa-solid fa-location-crosshairs"></i> Usar minha localização atual';
+      
+      if (error.code === error.PERMISSION_DENIED) {
+        showToast('⚠️ Você negou o acesso à localização. Use o CEP.', 'err');
+      } else if (error.code === error.POSITION_UNAVAILABLE) {
+        showToast('⚠️ Localização indisponível. Use o CEP.', 'err');
+      } else if (error.code === error.TIMEOUT) {
+        showToast('⚠️ Tempo esgotado. Tente novamente.', 'err');
+      } else {
+        showToast('⚠️ Erro ao obter localização', 'err');
+      }
+    },
+    {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    }
+  );
+}
+
+function buscarCEP() {
+  var cep = document.getElementById('cepInput').value.replace(/\D/g, '');
+  
+  if (cep.length !== 8) {
+    showToast('⚠️ Digite um CEP válido', 'err');
+    return;
+  }
+  
+  showToast('🔍 Buscando CEP...', 'ok');
+  
+  fetch('https://viacep.com.br/ws/' + cep + '/json/')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.erro) {
+        showToast('❌ CEP não encontrado', 'err');
+        return;
+      }
+      
+      enderecoUsuario = {
+        tipo: 'cep',
+        cep: cep,
+        logradouro: data.logradouro,
+        bairro: data.bairro,
+        cidade: data.localidade,
+        estado: data.uf
+      };
+      
+      document.getElementById('addressDisplay').style.display = 'block';
+      document.getElementById('addressText').textContent = 
+        data.logradouro + ', ' + data.bairro + ' - ' + data.localidade + '/' + data.uf;
+      
+      showToast('✅ CEP encontrado!', 'ok');
+      
+      document.getElementById('taxaEntrega').textContent = 'R$ 5,00';
+      atualizarBotaoFinalizar();
+    })
+    .catch(function() {
+      showToast('❌ Erro ao buscar CEP', 'err');
+    });
+}
+
+function atualizarBotaoFinalizar() {
+  var btn = document.getElementById('btnFinalizar');
+  
+  if (opcaoSelecionada === 'retirada' || enderecoUsuario) {
+    btn.disabled = false;
+  } else {
+    btn.disabled = true;
+  }
+}
+
+function renderCarrinho() {
+  var carrinho = JSON.parse(localStorage.getItem('mf_carrinho') || '[]');
+  var itemsEl = document.getElementById('cartItems');
+  
+  if (carrinho.length === 0) {
+    itemsEl.innerHTML = '<p style="text-align:center;color:var(--gray-3);padding:20px">Carrinho vazio</p>';
+    return;
+  }
+  
+  itemsEl.innerHTML = carrinho.map(function(item, idx) {
+    return '<div class="cart-item">' +
+      '<div class="cart-item-emoji">' + (item.emoji || '🍽️') + '</div>' +
+      '<div class="cart-item-info">' +
+        '<div class="cart-item-name">' + item.nome + '</div>' +
+        '<div class="cart-item-qty">R$ ' + item.preco.toFixed(2).replace('.', ',') + ' cada</div>' +
+      '</div>' +
+      '<div class="cart-item-actions">' +
+        '<button class="qty-btn" onclick="alterarQty(' + idx + ', -1)">-</button>' +
+        '<span class="item-qty-display">' + item.qty + '</span>' +
+        '<button class="qty-btn" onclick="alterarQty(' + idx + ', 1)">+</button>' +
+      '</div>' +
+      '<div class="cart-item-price">R$ ' + (item.preco * item.qty).toFixed(2).replace('.', ',') + '</div>' +
+    '</div>';
+  }).join('');
+  
+  var subtotal = carrinho.reduce(function(sum, i) { return sum + (i.preco * i.qty); }, 0);
+  document.getElementById('subtotal').textContent = 'R$ ' + subtotal.toFixed(2).replace('.', ',');
+  
+  var taxaText = document.getElementById('taxaEntrega').textContent;
+  var taxa = taxaText.includes('R$') ? parseFloat(taxaText.replace(/[^\d,]/g, '').replace(',', '.')) : 0;
+  var total = subtotal + taxa;
+  document.getElementById('total').textContent = 'R$ ' + total.toFixed(2).replace('.', ',');
+}
+
+function alterarQty(idx, delta) {
+  var carrinho = JSON.parse(localStorage.getItem('mf_carrinho') || '[]');
+  carrinho[idx].qty += delta;
+  
+  if (carrinho[idx].qty <= 0) {
+    carrinho.splice(idx, 1);
+  }
+  
+  localStorage.setItem('mf_carrinho', JSON.stringify(carrinho));
+  renderCarrinho();
+  
+  if (carrinho.length === 0) {
+    showToast('🛒 Carrinho vazio! Voltando ao cardápio...', 'ok');
+    setTimeout(function() {
+      window.location.href = 'cardapio.html';
+    }, 1500);
+  }
+}
+
+function finalizarPedido() {
+  var carrinho = JSON.parse(localStorage.getItem('mf_carrinho') || '[]');
+  
+  if (carrinho.length === 0) {
+    showToast('⚠️ Carrinho vazio', 'err');
+    return;
+  }
+  
+  if (!enderecoUsuario && opcaoSelecionada === 'endereco') {
+    showToast('⚠️ Informe um endereço ou CEP', 'err');
+    return;
+  }
+  
+  // Captura valor do troco se pagamento em dinheiro
+  if (formaPagamento === 'dinheiro') {
+    var trocoInput = document.getElementById('trocoInput').value.trim();
+    if (trocoInput) {
+      trocoValor = trocoInput;
+    }
+  }
+  
+  var p = getParceiro();
+  if (!p || !p.email) {
+    showToast('⚠️ Erro: usuário não identificado', 'err');
+    return;
+  }
+  
+  var id = Date.now();
+  var n = new Date();
+  var hora = String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  var total = carrinho.reduce(function(sum,i){return sum+(i.preco*i.qty);},0);
+  var taxaEntrega = opcaoSelecionada === 'retirada' ? 0 : 5.00;
+  var totalComTaxa = total + taxaEntrega;
+  
+  // Monta descrição do endereço
+  var enderecoTexto = '';
+  if (opcaoSelecionada === 'retirada') {
+    enderecoTexto = 'RETIRADA NO LOCAL';
+  } else if (enderecoUsuario.tipo === 'geolocalizacao') {
+    enderecoTexto = enderecoUsuario.endereco || ('Lat: ' + enderecoUsuario.lat.toFixed(6) + ', Lng: ' + enderecoUsuario.lng.toFixed(6));
+  } else if (enderecoUsuario.tipo === 'cep') {
+    enderecoTexto = enderecoUsuario.logradouro + ', ' + enderecoUsuario.bairro + ' - ' + enderecoUsuario.cidade + '/' + enderecoUsuario.estado + ' - CEP: ' + enderecoUsuario.cep;
+  }
+  
+  // Monta texto da forma de pagamento
+  var pagamentoTexto = '';
+  if (formaPagamento === 'cartao') {
+    pagamentoTexto = '💳 Cartão (na entrega)';
+  } else if (formaPagamento === 'dinheiro') {
+    pagamentoTexto = '💵 Dinheiro';
+    if (trocoValor) {
+      pagamentoTexto += ' (Troco para: R$ ' + trocoValor + ')';
+    }
+  } else if (formaPagamento === 'pix') {
+    pagamentoTexto = '📱 PIX/QR Code';
+  }
+  
+  // Pedido completo para o admin ver (em mf_pedidos)
+  var pedidoAdmin = {
+    id: id,
+    clienteEmail: p.email,
+    cliente: p.nome,
+    endereco: enderecoTexto,
+    itens: carrinho.map(function(i){return{qty:i.qty, nome:i.nome};}),
+    total: totalComTaxa,
+    status: 'new',
+    hora: hora,
+    data: new Date().toISOString(),
+    opcaoEntrega: opcaoSelecionada,
+    taxaEntrega: taxaEntrega,
+    formaPagamento: formaPagamento,
+    pagamentoTexto: pagamentoTexto,
+    troco: trocoValor
+  };
+  
+  // Pedido simplificado para o usuário ver (em mf_meus_pedidos_EMAIL)
+  var pedidoUsuario = {
+    id: id,
+    itens: carrinho.map(function(i){return i.qty+'x '+i.nome;}).join(', '),
+    total: totalComTaxa,
+    hora: hora,
+    status: 'new',
+    endereco: enderecoTexto,
+    data: new Date().toISOString(),
+    pagamento: pagamentoTexto
+  };
+  
+  // Salva pedido global para admin
+  var pedidosAdmin = JSON.parse(localStorage.getItem('mf_pedidos') || '[]');
+  pedidosAdmin.unshift(pedidoAdmin);
+  localStorage.setItem('mf_pedidos', JSON.stringify(pedidosAdmin));
+  
+  // Salva pedido específico do usuário (usando email como chave)
+  var chaveUsuario = 'mf_pedidos_' + p.email.replace(/[^a-zA-Z0-9]/g, '_');
+  var pedidosUsuario = JSON.parse(localStorage.getItem(chaveUsuario) || '[]');
+  pedidosUsuario.unshift(pedidoUsuario);
+  localStorage.setItem(chaveUsuario, JSON.stringify(pedidosUsuario));
+  
+  // Limpa carrinho do usuário
+  var chaveCarrinho = 'mf_carrinho_' + p.email.replace(/[^a-zA-Z0-9]/g, '_');
+  localStorage.removeItem(chaveCarrinho);
+  localStorage.removeItem('mf_carrinho'); // Remove também o carrinho global (compatibilidade)
+  
+  showToast('🎉 Pedido realizado com sucesso!', 'ok');
+  
+  // Envia notificação via WhatsApp
+  enviarNotificacaoWhatsApp(pedidoAdmin);
+  
+  setTimeout(function() {
+    window.location.href = 'meus-pedidos.html';
+  }, 1500);
+}
+
+function enviarNotificacaoWhatsApp(pedido) {
+  // Número do WhatsApp (configurado no .env)
+  var numeroWhatsApp = '5534999098073'; // 55 = Brasil, 34 = DDD, número
+  
+  // Monta a mensagem
+  var mensagem = '🔔 *NOVO PEDIDO - MamaFood* 🔔\n\n';
+  mensagem += '📋 *Pedido #' + String(pedido.id).slice(-4) + '*\n';
+  mensagem += '👤 *Cliente:* ' + pedido.cliente + '\n';
+  mensagem += '📧 *Email:* ' + pedido.clienteEmail + '\n';
+  mensagem += '📍 *Endereço:* ' + pedido.endereco + '\n';
+  mensagem += '🕐 *Horário:* ' + pedido.hora + '\n\n';
+  
+  mensagem += '🍽️ *Itens do Pedido:*\n';
+  pedido.itens.forEach(function(item) {
+    mensagem += '  • ' + item.qty + 'x ' + item.nome + '\n';
+  });
+  
+  mensagem += '\n💰 *Total:* R$ ' + pedido.total.toFixed(2).replace('.', ',') + '\n';
+  
+  if (pedido.opcaoEntrega === 'retirada') {
+    mensagem += '🏪 *Opção:* RETIRADA NO LOCAL\n';
+  } else {
+    mensagem += '🏠 *Opção:* ENTREGA\n';
+    mensagem += '🚚 *Taxa:* R$ ' + pedido.taxaEntrega.toFixed(2).replace('.', ',') + '\n';
+  }
+  
+  mensagem += '\n💳 *Pagamento:* ' + pedido.pagamentoTexto + '\n';
+  
+  if (pedido.troco) {
+    mensagem += '💵 *Observação:* Cliente precisa de troco\n';
+  }
+  
+  mensagem += '\n✅ Acesse o painel para confirmar o pedido!';
+  
+  // Codifica a mensagem para URL
+  var mensagemCodificada = encodeURIComponent(mensagem);
+  
+  // Abre WhatsApp em nova aba
+  var urlWhatsApp = 'https://wa.me/' + numeroWhatsApp + '?text=' + mensagemCodificada;
+  
+  console.log('📱 Abrindo WhatsApp:', urlWhatsApp);
+  
+  // Abre em nova janela/aba após 500ms (dá tempo da mensagem de sucesso aparecer)
+  setTimeout(function() {
+    window.open(urlWhatsApp, '_blank');
+  }, 500);
+}
+
+authGuard(false, function() {
+  renderCarrinho();
+  atualizarBotaoFinalizar();
+});
+</script>
+</body>
+</html>

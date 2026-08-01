@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Promoções</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../shared.css"/>
+  <style>
+    .promo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 20px; }
+    
+    .promo-card {
+      background: linear-gradient(135deg, #ff3040 0%, #ff6b7a 100%);
+      border-radius: 20px;
+      padding: 28px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 8px 24px rgba(255,48,64,.25);
+      transition: transform .2s, box-shadow .2s;
+    }
+    .promo-card:hover { transform: translateY(-4px); box-shadow: 0 12px 32px rgba(255,48,64,.35); }
+    
+    .promo-badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: rgba(255,255,255,.2);
+      backdrop-filter: blur(10px);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: .7rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      letter-spacing: .05em;
+    }
+    
+    .promo-icon {
+      width: 60px;
+      height: 60px;
+      background: rgba(255,255,255,.15);
+      border-radius: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2rem;
+      margin-bottom: 16px;
+    }
+    
+    .promo-title { font-size: 1.3rem; font-weight: 900; margin-bottom: 8px; line-height: 1.3; }
+    .promo-desc { font-size: .88rem; opacity: .9; margin-bottom: 16px; line-height: 1.5; }
+    
+    .promo-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-top: 16px;
+      border-top: 1px solid rgba(255,255,255,.2);
+    }
+    
+    .promo-discount {
+      font-size: 2rem;
+      font-weight: 900;
+      line-height: 1;
+    }
+    
+    .promo-btn {
+      background: #fff;
+      color: #ff3040;
+      padding: 10px 20px;
+      border-radius: 12px;
+      font-size: .85rem;
+      font-weight: 800;
+      transition: all .2s;
+      cursor: pointer;
+      border: none;
+    }
+    .promo-btn:hover { transform: scale(1.05); box-shadow: 0 4px 12px rgba(255,255,255,.3); }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--gray-3);
+    }
+    .empty-state i { font-size: 4rem; color: var(--gray-2); margin-bottom: 20px; }
+    .empty-state h3 { font-size: 1.3rem; font-weight: 800; color: var(--dark); margin-bottom: 8px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Promoções</span><span class="topbar-sub"> — ofertas especiais</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="promo-grid" id="promoGrid"></div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="../AppJs/shared.js"></script>
+<script>
+function getPromocoes() {
+  // Promoções de exemplo (em produção viria do backend/localStorage)
+  return [
+    {
+      id: 1,
+      titulo: 'Combo Família',
+      descricao: '2 hambúrgueres + 1 batata grande + 2 refrigerantes por apenas R$ 49,90',
+      desconto: '30%',
+      emoji: '🍔',
+      validade: '31/12/2026',
+      ativo: true
+    },
+    {
+      id: 2,
+      titulo: 'Segunda Feliz',
+      descricao: 'Todas as segundas-feiras, DOBRO de queijo grátis em qualquer hambúrguer!',
+      desconto: '2x',
+      emoji: '🧀',
+      validade: 'Toda segunda',
+      ativo: true
+    },
+    {
+      id: 3,
+      titulo: 'Frete Grátis',
+      descricao: 'Em pedidos acima de R$ 40,00, entrega por nossa conta!',
+      desconto: 'FREE',
+      emoji: '🛵',
+      validade: 'Sempre',
+      ativo: true
+    },
+    {
+      id: 4,
+      titulo: 'Cupom MAMA10',
+      descricao: 'Use o cupom MAMA10 e ganhe 10% de desconto no primeiro pedido',
+      desconto: '10%',
+      emoji: '🎟️',
+      validade: '31/01/2027',
+      ativo: true
+    }
+  ];
+}
+
+function renderPromos() {
+  var promos = getPromocoes().filter(function(p){ return p.ativo; });
+  var el = document.getElementById('promoGrid');
+  
+  if (!promos.length) {
+    el.innerHTML = '<div class="empty-state"><i class="fa-solid fa-tags"></i><h3>Nenhuma promoção ativa</h3><p>Fique de olho! Sempre temos ofertas especiais.</p></div>';
+    return;
+  }
+  
+  el.innerHTML = promos.map(function(p){
+    return '<div class="promo-card anim-fade-up">' +
+      '<div class="promo-badge">' + esc(p.validade) + '</div>' +
+      '<div class="promo-icon">' + p.emoji + '</div>' +
+      '<div class="promo-title">' + esc(p.titulo) + '</div>' +
+      '<div class="promo-desc">' + esc(p.descricao) + '</div>' +
+      '<div class="promo-footer">' +
+        '<div class="promo-discount">' + esc(p.desconto) + '</div>' +
+        '<button class="promo-btn" onclick="usarPromocao(' + p.id + ')">Usar agora</button>' +
+      '</div>' +
+    '</div>';
+  }).join('');
+}
+
+function usarPromocao(id) {
+  showToast('🎉 Promoção aplicada! Vá para o cardápio.', 'ok');
+  setTimeout(function(){ window.location.href = 'cardapio.html'; }, 1500);
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+authGuard(false, function() {
+  renderPromos();
+});
+</script>
+</body>
+</html>

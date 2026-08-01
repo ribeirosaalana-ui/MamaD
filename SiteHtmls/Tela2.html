@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Painel</title>
+  
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../shared.css"/>
+  <style>
+    /* ── Welcome banner ── */
+    .welcome-banner {
+      background: linear-gradient(135deg, #0f1120 0%, #1a1035 50%, #0f1120 100%);
+      border-radius: 20px;
+      padding: 32px 36px;
+      margin-bottom: 24px;
+      position: relative;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+    }
+    .wb-orb1 {
+      position: absolute; width: 300px; height: 300px;
+      background: radial-gradient(circle, rgba(255,48,64,.35) 0%, transparent 70%);
+      border-radius: 50%; top: -100px; right: 60px;
+      pointer-events: none;
+    }
+    .wb-orb2 {
+      position: absolute; width: 200px; height: 200px;
+      background: radial-gradient(circle, rgba(108,63,255,.3) 0%, transparent 70%);
+      border-radius: 50%; bottom: -60px; right: 200px;
+      pointer-events: none;
+    }
+    .wb-left { position: relative; z-index: 1; }
+    .wb-greeting {
+      font-size: .8rem;
+      font-weight: 600;
+      color: rgba(255,255,255,.45);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      margin-bottom: 8px;
+    }
+    .wb-name {
+      font-size: 1.7rem;
+      font-weight: 900;
+      color: #fff;
+      letter-spacing: -.02em;
+      margin-bottom: 6px;
+    }
+    .wb-name em {
+      font-style: normal;
+      background: linear-gradient(135deg, #ff3040, #ff8a65);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .wb-sub { font-size: .85rem; color: rgba(255,255,255,.45); }
+    .wb-right { position: relative; z-index: 1; flex-shrink: 0; }
+    .wb-emoji { font-size: 5rem; line-height: 1; filter: drop-shadow(0 8px 24px rgba(255,48,64,.4)); }
+
+    /* ── Quick actions ── */
+    .quick-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 14px;
+      margin-bottom: 24px;
+    }
+    .qa-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 20px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      text-decoration: none;
+      color: var(--dark);
+      transition: all var(--t-fast);
+      box-shadow: var(--shadow-xs);
+    }
+    .qa-card:hover {
+      box-shadow: var(--shadow-md);
+      transform: translateY(-2px);
+      border-color: var(--red);
+    }
+    .qa-icon {
+      width: 44px; height: 44px;
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+    }
+    .qa-icon.red    { background: var(--red-subtle); color: var(--red); }
+    .qa-icon.green  { background: var(--green-bg); color: var(--green-dark); }
+    .qa-icon.blue   { background: var(--blue-bg); color: var(--blue-dark); }
+    .qa-label { font-size: .88rem; font-weight: 700; }
+    .qa-sub   { font-size: .75rem; color: var(--gray-3); margin-top: 2px; }
+
+    /* ── Info cards row ── */
+    .info-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    .info-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 24px;
+      box-shadow: var(--shadow-xs);
+    }
+    .info-card h3 {
+      font-size: .9rem;
+      font-weight: 800;
+      color: var(--dark);
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .info-card h3 i { color: var(--red); font-size: .85rem; }
+
+    /* Tips */
+    .tip-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--gray-1);
+    }
+    .tip-item:last-child { border-bottom: none; padding-bottom: 0; }
+    .tip-num {
+      width: 26px; height: 26px;
+      background: var(--red-subtle);
+      color: var(--red);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: .75rem;
+      font-weight: 800;
+      flex-shrink: 0;
+    }
+    .tip-text { font-size: .82rem; color: var(--gray-4); line-height: 1.5; }
+    .tip-text strong { color: var(--dark); font-weight: 700; }
+
+    /* Activity */
+    .activity-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 11px 0;
+      border-bottom: 1px solid var(--gray-1);
+    }
+    .activity-item:last-child { border-bottom: none; }
+    .act-dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .act-dot.red   { background: var(--red); }
+    .act-dot.green { background: var(--green); }
+    .act-dot.blue  { background: var(--blue); }
+    .act-text { font-size: .82rem; color: var(--gray-4); flex: 1; }
+    .act-time { font-size: .72rem; color: var(--gray-3); white-space: nowrap; }
+
+    @media (max-width: 900px) {
+      .quick-actions { grid-template-columns: 1fr 1fr; }
+      .info-row      { grid-template-columns: 1fr; }
+      .wb-emoji      { display: none; }
+      .welcome-banner { padding: 24px; }
+    }
+    @media (max-width: 480px) {
+      .quick-actions { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Painel</span><span class="topbar-sub"> — visão geral</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- Welcome Banner -->
+      <div class="welcome-banner anim-fade-up">
+        <div class="wb-left">
+          <div class="wb-greeting">Bem-vindo de volta</div>
+          <div class="wb-name" id="wb-name">Carregando... <em>👋</em></div>
+          <div class="wb-sub" id="wb-sub">Use o menu lateral para navegar pelo painel.</div>
+        </div>
+        <div class="wb-right">
+          <div class="wb-emoji">🍽️</div>
+        </div>
+        <div class="wb-orb1"></div>
+        <div class="wb-orb2"></div>
+      </div>
+
+      <!-- Quick Actions -->
+      <div class="quick-actions">
+        <a class="qa-card anim-fade-up" href="cardapio.html">
+          <div class="qa-icon red"><i class="fa-solid fa-utensils"></i></div>
+          <div>
+            <div class="qa-label">Ver Cardápio</div>
+            <div class="qa-sub">Escolha e peça agora</div>
+          </div>
+        </a>
+        <a class="qa-card anim-fade-up" href="meus-pedidos.html">
+          <div class="qa-icon green"><i class="fa-solid fa-receipt"></i></div>
+          <div>
+            <div class="qa-label">Meus Pedidos</div>
+            <div class="qa-sub">Acompanhe suas entregas</div>
+          </div>
+        </a>
+        <a class="qa-card anim-fade-up" href="perfil.html">
+          <div class="qa-icon blue"><i class="fa-solid fa-store"></i></div>
+          <div>
+            <div class="qa-label">Meu Perfil</div>
+            <div class="qa-sub">Edite suas informações</div>
+          </div>
+        </a>
+      </div>
+
+      <!-- Info Row -->
+      <div class="info-row">
+        <!-- Tips -->
+        <div class="info-card anim-fade-up">
+          <h3><i class="fa-solid fa-lightbulb"></i> Como usar o MamaFood</h3>
+          <div class="tip-item">
+            <div class="tip-num">1</div>
+            <div class="tip-text"><strong>Acesse o Cardápio</strong> para ver todos os itens disponíveis e adicionar ao carrinho.</div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-num">2</div>
+            <div class="tip-text"><strong>Faça seu pedido</strong> e acompanhe o status em "Meus Pedidos" em tempo real.</div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-num">3</div>
+            <div class="tip-text"><strong>Consulte a Taxa</strong> de entrega pela sua região antes de finalizar.</div>
+          </div>
+          <div class="tip-item">
+            <div class="tip-num">4</div>
+            <div class="tip-text"><strong>Configure seu Perfil</strong> com endereço atualizado para entregas mais rápidas.</div>
+          </div>
+        </div>
+
+        <!-- Activity -->
+        <div class="info-card anim-fade-up">
+          <h3><i class="fa-solid fa-chart-line"></i> Atividade Recente</h3>
+          <div id="activity-list">
+            <div class="activity-item">
+              <div class="act-dot blue"></div>
+              <div class="act-text">Painel MamaFood iniciado com sucesso</div>
+              <div class="act-time" id="act-time-now">--:--</div>
+            </div>
+            <div class="activity-item">
+              <div class="act-dot green"></div>
+              <div class="act-text">Conta conectada e verificada</div>
+              <div class="act-time">agora</div>
+            </div>
+            <div class="activity-item">
+              <div class="act-dot red"></div>
+              <div class="act-text">Pronto para receber pedidos</div>
+              <div class="act-time">agora</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<!-- Notificações de boas-vindas -->
+<div id="notif-overlay" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,.65); z-index:900; align-items:center; justify-content:center; backdrop-filter:blur(6px)">
+  <div id="notif-card" style="
+    background:#0f1120;
+    border: 1px solid rgba(255,255,255,.08);
+    border-radius:24px;
+    width:380px;
+    max-width:92vw;
+    padding:36px 30px 26px;
+    position:relative;
+    box-shadow:0 40px 80px rgba(0,0,0,.6);
+    animation: notifIn .45s cubic-bezier(.34,1.56,.64,1);
+    text-align:center;
+  ">
+    <button onclick="fecharNotif()" style="position:absolute;top:14px;right:14px;background:rgba(255,255,255,.07);border:none;color:rgba(255,255,255,.5);width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:.85rem;display:flex;align-items:center;justify-content:center;transition:all .15s" onmouseover="this.style.background='rgba(255,255,255,.12)'" onmouseout="this.style.background='rgba(255,255,255,.07)'">
+      <i class="fa-solid fa-xmark"></i>
+    </button>
+    <div id="notif-icon" style="width:76px;height:76px;border-radius:20px;background:linear-gradient(135deg,#ff3040,#ff8a65);display:flex;align-items:center;justify-content:center;margin:0 auto 18px;font-size:2.2rem;box-shadow:0 10px 30px rgba(255,48,64,.35)">🍔</div>
+    <div style="display:inline-flex;align-items:center;gap:6px;background:rgba(255,48,64,.12);border:1px solid rgba(255,48,64,.25);border-radius:20px;padding:4px 14px;margin-bottom:16px">
+      <span style="width:6px;height:6px;border-radius:50%;background:#ff3040;display:inline-block;animation:blink-d 1.5s infinite"></span>
+      <span id="notif-badge" style="font-size:.72rem;font-weight:800;color:#ff6b7a;text-transform:uppercase;letter-spacing:.08em">Bem-vindo</span>
+    </div>
+    <p id="notif-text" style="font-size:1rem;font-weight:500;color:rgba(255,255,255,.8);line-height:1.6;margin-bottom:24px"></p>
+    <button id="notif-btn" onclick="proximaNotif()" style="width:100%;padding:14px;background:linear-gradient(135deg,#ff3040,#ff6b7a);color:#fff;border:none;border-radius:14px;font-size:.95rem;font-weight:800;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;gap:8px;box-shadow:0 6px 20px rgba(255,48,64,.3)" onmouseover="this.style.transform='translateY(-1px)'" onmouseout="this.style.transform=''">
+      <span id="notif-btn-text">Próximo</span>
+      <i class="fa-solid fa-arrow-right"></i>
+    </button>
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:16px">
+      <button onclick="naoMostrar()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:.78rem;cursor:pointer;display:flex;align-items:center;gap:5px;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">
+        <i class="fa-regular fa-bell-slash"></i> Não mostrar
+      </button>
+      <div id="notif-dots" style="display:flex;gap:5px"></div>
+      <button onclick="fecharNotif()" style="background:none;border:none;color:rgba(255,255,255,.3);font-size:.78rem;cursor:pointer;transition:color .15s" onmouseover="this.style.color='rgba(255,255,255,.6)'" onmouseout="this.style.color='rgba(255,255,255,.3)'">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<style>
+@keyframes notifIn { from{transform:scale(.85) translateY(20px);opacity:0} to{transform:scale(1) translateY(0);opacity:1} }
+@keyframes blink-d { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+
+<script src="../AppJs/shared.js"></script>
+<script>
+  var NOTIFS = [
+    { icon:'👋', badge:'Bem-vindo', text:'Seja muito bem-vindo à <b>Casa da Mama</b>! Aqui você encontra os melhores hambúrgueres e salgados da cidade, feitos com muito carinho.', btn:'Conhecer o cardápio', link:'cardapio.html' },
+    { icon:'🍔', badge:'Hambúrgueres', text:'Nossos hambúrgueres são feitos com ingredientes frescos e pão artesanal. Escolha o seu favorito e receba em casa quentinho!', btn:'Ver hambúrgueres', link:'cardapio.html' },
+    { icon:'🥟', badge:'Salgados', text:'Coxinha, pastel, enroladinho e muito mais! Crocantes por fora e recheados por dentro.', btn:'Ver salgados', link:'cardapio.html' },
+    { icon:'🛵', badge:'Entrega Rápida', text:'Entregamos na sua porta com agilidade e cuidado. Acompanhe seu pedido em tempo real pelo painel <b>Meus Pedidos</b>.', btn:'Fazer meu pedido', link:'meus-pedidos.html' },
+    { icon:'❤️', badge:'Obrigado', text:'Obrigado por escolher a <b>Casa da Mama</b>! Seu pedido é especial pra gente. Bom apetite! 😋', btn:'Começar agora', link:'cardapio.html' }
+  ];
+  var notifIdx = 0;
+
+  function mostrarNotif() {
+    if (localStorage.getItem('mf_notif_dismissed')) return;
+    if (!localStorage.getItem('mf_novo_cadastro')) return;
+    localStorage.removeItem('mf_novo_cadastro');
+    notifIdx = 0; renderNotif();
+    document.getElementById('notif-overlay').style.display = 'flex';
+  }
+  function renderNotif() {
+    var n = NOTIFS[notifIdx];
+    document.getElementById('notif-icon').textContent     = n.icon;
+    document.getElementById('notif-badge').textContent    = n.badge;
+    document.getElementById('notif-text').innerHTML       = n.text;
+    document.getElementById('notif-btn-text').textContent = n.btn;
+    document.getElementById('notif-btn').onclick = function() {
+      if (notifIdx < NOTIFS.length - 1) { proximaNotif(); } else { fecharNotif(); window.location.href = n.link; }
+    };
+    var dots = document.getElementById('notif-dots');
+    dots.innerHTML = NOTIFS.map(function(_,i){
+      return '<span style="width:7px;height:7px;border-radius:50%;background:' + (i===notifIdx?'#ff3040':'rgba(255,255,255,.15)') + ';display:inline-block;transition:background .2s"></span>';
+    }).join('');
+    var card = document.getElementById('notif-card');
+    card.style.animation = 'none'; void card.offsetWidth;
+    card.style.animation = 'notifIn .4s cubic-bezier(.34,1.56,.64,1)';
+  }
+  function proximaNotif() { if (notifIdx < NOTIFS.length-1){ notifIdx++; renderNotif(); } else { fecharNotif(); } }
+  function fecharNotif() { document.getElementById('notif-overlay').style.display = 'none'; }
+  function naoMostrar() { localStorage.setItem('mf_notif_dismissed','1'); fecharNotif(); }
+
+  authGuard(false, function() {
+    // Preenche boas-vindas
+    var p = JSON.parse(localStorage.getItem('mf_parceiro') || 'null');
+    if (p && p.nome) {
+      var primeiro = p.nome.split(' ')[0];
+      document.getElementById('wb-name').innerHTML = 'Olá, <em>' + primeiro + '!</em>';
+      document.getElementById('wb-sub').textContent = 'Bem-vindo ao seu painel. Use o menu lateral para navegar.';
+    }
+    // Hora na atividade
+    var n = new Date();
+    var h = String(n.getHours()).padStart(2,'0') + ':' + String(n.getMinutes()).padStart(2,'0');
+    var el = document.getElementById('act-time-now');
+    if (el) el.textContent = h;
+
+    mostrarNotif();
+  });
+</script>
+</body>
+</html>

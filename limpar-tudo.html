@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Limpar Dados</title>
+  <style>
+    body { font-family: Arial; padding: 40px; background: #f5f5f5; }
+    button { padding: 15px 30px; background: #ff4444; color: #fff; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; margin: 10px; }
+    button:hover { background: #cc0000; }
+    .resultado { margin-top: 20px; padding: 20px; background: #fff; border-radius: 8px; }
+  </style>
+</head>
+<body>
+  <h1>🗑️ Limpar Dados do MamaFood</h1>
+  <button onclick="limparTudo()">Limpar TUDO (Notificações + Promoções + Avaliações)</button>
+  <button onclick="limparNotificacoes()">Limpar apenas Notificações</button>
+  <button onclick="limparPromocoes()">Limpar apenas Promoções</button>
+  <button onclick="limparAvaliacoes()">Limpar apenas Avaliações</button>
+  <div class="resultado" id="resultado"></div>
+
+  <script>
+    function limparTudo() {
+      if (!confirm('Deseja limpar TODAS as notificações, promoções e avaliações?')) return;
+      
+      var count = 0;
+      var keys = Object.keys(localStorage);
+      
+      // Limpar notificações de todos os usuários
+      keys.forEach(function(key) {
+        if (key.startsWith('mf_notificacoes_')) {
+          localStorage.removeItem(key);
+          count++;
+        }
+      });
+      
+      // Limpar promoções
+      localStorage.removeItem('mf_promocoes');
+      
+      // Limpar avaliações
+      localStorage.removeItem('mf_avaliacoes');
+      
+      document.getElementById('resultado').innerHTML = 
+        '<strong>✅ Limpeza concluída!</strong><br/>' +
+        '📧 ' + count + ' notificações de usuários removidas<br/>' +
+        '🏷️ Promoções removidas<br/>' +
+        '⭐ Avaliações removidas<br/><br/>' +
+        '<em>Recarregue as páginas para ver as mudanças.</em>';
+    }
+    
+    function limparNotificacoes() {
+      if (!confirm('Deseja limpar todas as notificações?')) return;
+      
+      var count = 0;
+      var keys = Object.keys(localStorage);
+      
+      keys.forEach(function(key) {
+        if (key.startsWith('mf_notificacoes_')) {
+          localStorage.removeItem(key);
+          count++;
+        }
+      });
+      
+      document.getElementById('resultado').innerHTML = 
+        '<strong>✅ ' + count + ' notificações removidas!</strong>';
+    }
+    
+    function limparPromocoes() {
+      if (!confirm('Deseja limpar todas as promoções?')) return;
+      localStorage.removeItem('mf_promocoes');
+      document.getElementById('resultado').innerHTML = 
+        '<strong>✅ Promoções removidas!</strong>';
+    }
+    
+    function limparAvaliacoes() {
+      if (!confirm('Deseja limpar todas as avaliações?')) return;
+      localStorage.removeItem('mf_avaliacoes');
+      document.getElementById('resultado').innerHTML = 
+        '<strong>✅ Avaliações removidas!</strong>';
+    }
+  </script>
+</body>
+</html>

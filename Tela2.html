@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Painel</title>
+  <script src="AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="shared.css"/>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Painel</span><span class="topbar-sub"> MamaFood</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+    <div class="content" style="display:flex;align-items:center;justify-content:center;min-height:60vh">
+      <div style="text-align:center;color:var(--gray-3)">
+        <i class="fa-solid fa-bowl-food" style="font-size:3rem;color:var(--red);margin-bottom:16px;display:block"></i>
+        <h2 style="color:var(--dark);margin-bottom:8px">Bem-vindo ao MamaFood!</h2>
+        <p>Use o menu lateral para navegar.</p>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="shared.js"></script>
+<script>
+  authGuard(false, function() {
+    loadEnv(function() {
+      buildSidebar('Tela2.html');
+      startClock('clock');
+    });
+  });
+</script>
+</body>
+</html>

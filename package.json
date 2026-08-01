@@ -1,0 +1,22 @@
+{
+  "name": "mamafood",
+  "version": "1.0.0",
+  "description": "Sistema de delivery MamaFood com Google OAuth, geolocalização e notificações WhatsApp",
+  "main": "index.html",
+  "scripts": {
+    "start": "powershell -ExecutionPolicy Bypass -File server.ps1",
+    "deploy": "firebase deploy",
+    "deploy:hosting": "firebase deploy --only hosting"
+  },
+  "keywords": [
+    "delivery",
+    "food",
+    "firebase",
+    "oauth"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "firebase-tools": "^13.0.0"
+  }
+}

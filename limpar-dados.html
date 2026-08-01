@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Limpar Dados - MamaFood</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 40px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+    }
+    h1 { 
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+      color: #1a1a1a;
+    }
+    p {
+      color: #666;
+      line-height: 1.6;
+      margin-bottom: 24px;
+    }
+    .info {
+      background: #f5f5f5;
+      border-radius: 8px;
+      padding: 16px;
+      margin-bottom: 24px;
+      font-size: 0.9rem;
+      color: #444;
+    }
+    .info strong {
+      display: block;
+      margin-bottom: 8px;
+      color: #1a1a1a;
+    }
+    button {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 10px;
+    }
+    .btn-danger {
+      background: #dc2626;
+      color: white;
+    }
+    .btn-danger:hover {
+      background: #b91c1c;
+    }
+    .btn-primary {
+      background: #ea1d2c;
+      color: white;
+    }
+    .btn-primary:hover {
+      background: #c0111e;
+    }
+    .status {
+      margin-top: 20px;
+      padding: 12px;
+      border-radius: 8px;
+      text-align: center;
+      display: none;
+    }
+    .status.success {
+      background: #d1fae5;
+      color: #065f46;
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>🔧 Diagnóstico MamaFood</h1>
+    <p>Use esta página para resolver problemas de login e redirecionamento.</p>
+    
+    <div class="info" id="info">
+      <strong>📊 Dados salvos:</strong>
+      Carregando...
+    </div>
+    
+    <button class="btn-danger" onclick="limparTudo()">
+      🗑️ Limpar todos os dados e recomeçar
+    </button>
+    
+    <button class="btn-primary" onclick="irParaTela1()">
+      ↩️ Ir para página de login
+    </button>
+    
+    <div class="status" id="status"></div>
+  </div>
+
+  <script>
+    // Mostra o que está salvo
+    function mostrarDados() {
+      var info = document.getElementById('info');
+      var html = '<strong>📊 Dados salvos:</strong>';
+      
+      var parceiro = localStorage.getItem('mf_parceiro');
+      var sessao = localStorage.getItem('mf_sessao_ativa');
+      var usuarios = localStorage.getItem('mf_usuarios');
+      
+      html += '<br>• mf_parceiro: ' + (parceiro ? '✅ Sim' : '❌ Não');
+      html += '<br>• mf_sessao_ativa: ' + (sessao ? '✅ Sim' : '❌ Não');
+      html += '<br>• mf_usuarios: ' + (usuarios ? '✅ ' + JSON.parse(usuarios).length + ' usuário(s)' : '❌ Não');
+      
+      if (parceiro) {
+        var p = JSON.parse(parceiro);
+        html += '<br><br><strong>👤 Usuário atual:</strong>';
+        html += '<br>Email: ' + (p.email || 'N/A');
+        html += '<br>Nome: ' + (p.nome || 'N/A');
+      }
+      
+      info.innerHTML = html;
+    }
+    
+    // Limpa tudo
+    function limparTudo() {
+      if (!confirm('Tem certeza? Isso vai apagar todos os dados salvos (cadastros, pedidos, etc).')) {
+        return;
+      }
+      
+      localStorage.clear();
+      
+      var status = document.getElementById('status');
+      status.className = 'status success';
+      status.textContent = '✅ Todos os dados foram limpos! Redirecionando...';
+      
+      setTimeout(function() {
+        window.location.href = 'SiteHtmls/Tela1.html';
+      }, 1500);
+    }
+    
+    // Ir para Tela1
+    function irParaTela1() {
+      window.location.href = 'SiteHtmls/Tela1.html';
+    }
+    
+    // Carrega ao abrir
+    mostrarDados();
+  </script>
+</body>
+</html>

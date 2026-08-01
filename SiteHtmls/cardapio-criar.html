@@ -1,0 +1,348 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Criar Cardápio (Admin)</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../../shared.css"/>
+  <style>
+    .criar-wrap { display:grid; grid-template-columns:400px 1fr; gap:24px; align-items:start; }
+    .form-card { background:var(--white); border-radius:14px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:80px; }
+    .form-card h2 { font-size:1rem; font-weight:800; margin-bottom:20px; padding-bottom:12px; border-bottom:1px solid var(--gray-2); display:flex; align-items:center; gap:8px; }
+    .emoji-picker { display:flex; gap:8px; flex-wrap:wrap; margin-bottom:6px; }
+    .ep-opt { font-size:1.4rem; padding:4px 8px; border-radius:8px; cursor:pointer; border:2px solid transparent; transition:all .15s; }
+    .ep-opt:hover,.ep-opt.sel { border-color:var(--red); background:#fef2f2; }
+    /* Produtos lista */
+    .produtos-list h2 { font-size:1rem; font-weight:800; margin-bottom:16px; display:flex; align-items:center; gap:8px; color:var(--dark); }
+    .produto-row { background:var(--white); border-radius:12px; padding:14px 18px; border:1.5px solid var(--gray-2); display:flex; align-items:center; gap:14px; margin-bottom:10px; transition:box-shadow .15s; }
+    .produto-row:hover { box-shadow:0 4px 12px rgba(0,0,0,.08); }
+    .pr-emoji { font-size:2rem; flex-shrink:0; }
+    .pr-info { flex:1; }
+    .pr-name { font-size:.92rem; font-weight:700; }
+    .pr-cat  { font-size:.72rem; color:var(--gray-3); font-weight:600; text-transform:uppercase; letter-spacing:.04em; margin-top:1px; }
+    .pr-desc { font-size:.78rem; color:var(--gray-4); margin-top:2px; }
+    .pr-price { font-size:1rem; font-weight:800; color:var(--red); white-space:nowrap; }
+    .btn-del { background:#fef2f2; color:var(--red); width:32px; height:32px; border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:.85rem; transition:background .15s; flex-shrink:0; }
+    .btn-del:hover { background:#fee2e2; }
+    /* Imagem upload */
+    .img-upload-wrap { position:relative; }
+    .img-drop-area { border:2px dashed var(--gray-2); border-radius:10px; padding:16px; text-align:center; cursor:pointer; transition:all .2s; background:var(--gray-1); }
+    .img-drop-area:hover, .img-drop-area.dragover { border-color:var(--red); background:#fef2f2; }
+    .img-drop-area i { font-size:1.8rem; color:var(--gray-3); display:block; margin-bottom:6px; }
+    .img-drop-area span { font-size:.8rem; color:var(--gray-3); }
+    .img-drop-area input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+    .img-preview-wrap { margin-top:10px; display:none; position:relative; }
+    .img-preview-wrap img { width:100%; max-height:160px; object-fit:cover; border-radius:10px; border:1.5px solid var(--gray-2); display:block; }
+    .img-preview-wrap .btn-rm-img { position:absolute; top:6px; right:6px; background:rgba(0,0,0,.55); color:#fff; border:none; border-radius:6px; padding:4px 8px; font-size:.75rem; cursor:pointer; }
+    .img-preview-wrap .btn-rm-img:hover { background:var(--red); }
+    /* Produto row com imagem */
+    .pr-thumb { width:52px; height:52px; border-radius:10px; object-fit:cover; flex-shrink:0; border:1.5px solid var(--gray-2); }
+    .pr-thumb-emoji { width:52px; height:52px; border-radius:10px; background:var(--gray-1); display:flex; align-items:center; justify-content:center; font-size:1.8rem; flex-shrink:0; }
+    @media(max-width:900px){ .criar-wrap{grid-template-columns:1fr;} .form-card{position:static;} }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Cardápio Criar</span><span class="topbar-sub"> — gerencie os produtos</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="criar-wrap">
+
+        <!-- FORMULÁRIO -->
+        <div class="form-card">
+          <h2><i class="fa-solid fa-plus" style="color:var(--red)"></i> Novo produto</h2>
+          <div class="ff">
+            <label>Emoji do produto</label>
+            <div class="emoji-picker" id="emojiPicker"></div>
+            <input type="hidden" id="f-emoji" value="🍽️"/>
+          </div>
+          <div class="ff">
+            <label>Imagem do produto <span style="color:var(--gray-3);font-weight:400;font-size:.75rem">(opcional)</span></label>
+            <div class="img-upload-wrap">
+              <div class="img-drop-area" id="dropArea">
+                <i class="fa-solid fa-image"></i>
+                <span>Clique ou arraste uma imagem aqui<br/><small style="color:var(--gray-3)">JPG, PNG ou WEBP — máx. 2MB</small></span>
+                <input type="file" id="f-imagem" accept="image/jpeg,image/png,image/webp,image/gif" onchange="handleImageUpload(event)"/>
+              </div>
+              <div class="img-preview-wrap" id="imgPreviewWrap">
+                <img id="imgPreview" src="" alt="Preview"/>
+                <button class="btn-rm-img" onclick="removerImagem()"><i class="fa-solid fa-xmark"></i> Remover</button>
+              </div>
+            </div>
+            <input type="hidden" id="f-imagem-b64" value=""/>
+          </div>
+          <div class="ff">
+            <label>Nome <span class="req">*</span></label>
+            <input type="text" id="f-nome" placeholder="Ex: Pizza Margherita" required/>
+          </div>
+          <div class="ff">
+            <label>Descrição</label>
+            <textarea id="f-desc" placeholder="Ingredientes, tamanho..."></textarea>
+          </div>
+          <div class="ff-row">
+            <div class="ff">
+              <label>Preço (R$) <span class="req">*</span></label>
+              <input type="number" id="f-preco" placeholder="0,00" min="0" step="0.01" required/>
+            </div>
+            <div class="ff">
+              <label>Categoria</label>
+              <input type="text" id="f-cat" placeholder="Pizza, Bebida..." list="cats-list"/>
+              <datalist id="cats-list"></datalist>
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;margin-top:4px">
+            <button class="btn-primary" style="flex:1" onclick="salvarProduto()">
+              <i class="fa-solid fa-save"></i> Salvar produto
+            </button>
+            <button class="btn-secondary" onclick="limparForm()">Limpar</button>
+          </div>
+          <p id="edit-hint" style="display:none;font-size:.76rem;color:var(--gray-3);margin-top:10px;text-align:center">
+            Editando produto — salvar irá atualizar
+          </p>
+        </div>
+
+        <!-- LISTA DE PRODUTOS -->
+        <div class="produtos-list">
+          <h2><i class="fa-solid fa-list" style="color:var(--gray-3)"></i> Produtos cadastrados <span id="prod-count" style="font-size:.8rem;color:var(--gray-3);font-weight:500"></span></h2>
+          <div id="produtosList"></div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="../AppJs/shared.js"></script>
+<script>
+var EMOJIS = ['🍕','🍔','🌮','🍣','🍱','🥗','🍜','🍝','🥩','🍗','🌯','🥙','🍰','🧁','🍩','🍦','🥤','🧃','🍺','☕','🥐','🫕','🍛','🥪','🫔'];
+var editId = null;
+
+function getCardapio(){ 
+  return JSON.parse(localStorage.getItem('mf_cardapio') || '[]');
+}
+
+function setCardapio(c){ 
+  localStorage.setItem('mf_cardapio', JSON.stringify(c));
+}
+
+function buildEmojiPicker(){
+  var cur = document.getElementById('f-emoji');
+  if (!cur) return;
+  var val = cur.value || '🍽️';
+  var el  = document.getElementById('emojiPicker');
+  if (!el) return;
+  el.innerHTML = EMOJIS.map(function(e){
+    return '<span class="ep-opt'+(e===val?' sel':'')+'" onclick="pickEmoji(\''+e+'\')" style="cursor:pointer">'+e+'</span>';
+  }).join('');
+}
+
+function pickEmoji(e){
+  var el = document.getElementById('f-emoji');
+  if (el) el.value = e;
+  buildEmojiPicker();
+}
+// ── Upload de imagem ──────────────────────────────────────────────
+function handleImageUpload(event) {
+  var file = event.target.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    showToast('Imagem muito grande! Máx. 2MB.', 'err');
+    event.target.value = '';
+    return;
+  }
+  var reader = new FileReader();
+  reader.onload = function(e) {
+    var b64 = e.target.result;
+    document.getElementById('f-imagem-b64').value = b64;
+    document.getElementById('imgPreview').src = b64;
+    document.getElementById('imgPreviewWrap').style.display = 'block';
+    document.getElementById('dropArea').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+function removerImagem() {
+  document.getElementById('f-imagem-b64').value = '';
+  document.getElementById('imgPreview').src = '';
+  document.getElementById('imgPreviewWrap').style.display = 'none';
+  document.getElementById('dropArea').style.display = 'block';
+  document.getElementById('f-imagem').value = '';
+}
+
+// Drag & drop
+document.addEventListener('DOMContentLoaded', function() {
+  var area = document.getElementById('dropArea');
+  if (!area) return;
+  area.addEventListener('dragover',  function(e){ e.preventDefault(); area.classList.add('dragover'); });
+  area.addEventListener('dragleave', function()  { area.classList.remove('dragover'); });
+  area.addEventListener('drop', function(e) {
+    e.preventDefault();
+    area.classList.remove('dragover');
+    var file = e.dataTransfer.files[0];
+    if (!file || !file.type.startsWith('image/')) { showToast('Apenas imagens são permitidas', 'err'); return; }
+    if (file.size > 2*1024*1024) { showToast('Imagem muito grande! Máx. 2MB.', 'err'); return; }
+    var reader = new FileReader();
+    reader.onload = function(ev) {
+      var b64 = ev.target.result;
+      document.getElementById('f-imagem-b64').value = b64;
+      document.getElementById('imgPreview').src = b64;
+      document.getElementById('imgPreviewWrap').style.display = 'block';
+      document.getElementById('dropArea').style.display = 'none';
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+  var cur = document.getElementById('f-emoji').value;
+  document.getElementById('emojiPicker').innerHTML = EMOJIS.map(function(e){
+    return '<span class="ep-opt'+(e===cur?' sel':'')+'" onclick="pickEmoji(\''+e+'\')">' + e + '</span>';
+  }).join('');
+
+
+function pickEmoji(e){
+  document.getElementById('f-emoji').value = e;
+  buildEmojiPicker();
+}
+
+function salvarProduto(){
+  var nome  = document.getElementById('f-nome').value.trim();
+  var preco = parseFloat(document.getElementById('f-preco').value);
+  if(!nome){ showToast('Informe o nome do produto','err'); return; }
+  if(isNaN(preco)||preco<0){ showToast('Informe um preço válido','err'); return; }
+  var c = getCardapio();
+  var imgB64 = document.getElementById('f-imagem-b64').value || '';
+  // Se editando e não mudou imagem, mantém a anterior
+  var imgFinal = imgB64;
+  if(editId && !imgB64) {
+    var prev = c.find(function(p){return p.id===editId;});
+    if(prev) imgFinal = prev.imagem || '';
+  }
+  var produto = {
+    id:        editId || Date.now(),
+    nome:      nome,
+    descricao: document.getElementById('f-desc').value.trim(),
+    preco:     preco,
+    categoria: document.getElementById('f-cat').value.trim() || 'Geral',
+    emoji:     document.getElementById('f-emoji').value || '🍽️',
+    imagem:    imgFinal
+  };
+  if(editId){
+    var idx = c.findIndex(function(p){return p.id===editId;});
+    if(idx>=0) c[idx]=produto;
+    showToast('✅ Produto atualizado!','ok');
+    editId=null;
+  } else {
+    c.push(produto);
+    showToast('✅ Produto adicionado ao cardápio!','ok');
+  }
+  setCardapio(c);
+  limparForm();
+  renderProdutos();
+  editId=null;
+}
+
+function editarProduto(id){
+  var c = getCardapio();
+  var p = c.find(function(x){return x.id===id;});
+  if(!p) return;
+  editId = id;
+  document.getElementById('f-nome').value  = p.nome;
+  document.getElementById('f-desc').value  = p.descricao||'';
+  document.getElementById('f-preco').value = p.preco;
+  document.getElementById('f-cat').value   = p.categoria||'';
+  document.getElementById('f-emoji').value = p.emoji||'🍽️';
+  // Restaura imagem se existir
+  document.getElementById('f-imagem-b64').value = '';
+  if(p.imagem) {
+    document.getElementById('imgPreview').src = p.imagem;
+    document.getElementById('imgPreviewWrap').style.display = 'block';
+    document.getElementById('dropArea').style.display = 'none';
+  } else {
+    document.getElementById('imgPreviewWrap').style.display = 'none';
+    document.getElementById('dropArea').style.display = 'block';
+  }
+  document.getElementById('edit-hint').style.display='block';
+  buildEmojiPicker();
+  document.getElementById('f-nome').focus();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function deletarProduto(id){
+  if(!confirm('Remover este produto do cardápio?')) return;
+  var c = getCardapio().filter(function(p){return p.id!==id;});
+  setCardapio(c);
+  renderProdutos();
+  showToast('Produto removido','err');
+}
+
+function limparForm(){
+  editId=null;
+  document.getElementById('f-nome').value='';
+  document.getElementById('f-desc').value='';
+  document.getElementById('f-preco').value='';
+  document.getElementById('f-cat').value='';
+  document.getElementById('f-emoji').value='🍽️';
+  document.getElementById('f-imagem-b64').value='';
+  document.getElementById('f-imagem').value='';
+  document.getElementById('imgPreview').src='';
+  document.getElementById('imgPreviewWrap').style.display='none';
+  document.getElementById('dropArea').style.display='block';
+  document.getElementById('edit-hint').style.display='none';
+  buildEmojiPicker();
+}
+
+function renderProdutos(){
+  var c = getCardapio();
+  document.getElementById('prod-count').textContent = '(' + c.length + ')';
+  var cats = [...new Set(c.map(function(p){return p.categoria||'Geral';}))];
+  document.getElementById('cats-list').innerHTML = cats.map(function(cat){return'<option value="'+cat+'"/>';}).join('');
+  var el = document.getElementById('produtosList');
+  if(!c.length){
+    el.innerHTML='<div class="empty-state"><i class="fa-solid fa-utensils"></i><h3>Nenhum produto cadastrado</h3><p>Use o formulário ao lado para adicionar</p></div>';
+    return;
+  }
+  el.innerHTML = c.map(function(p){
+    var thumb = p.imagem
+      ? '<img class="pr-thumb" src="'+p.imagem+'" alt="'+esc(p.nome)+'">'
+      : '<div class="pr-thumb-emoji">'+(p.emoji||'🍽️')+'</div>';
+    return '<div class="produto-row">'+
+      thumb+
+      '<div class="pr-info">'+
+        '<div class="pr-name">'+esc(p.nome)+'</div>'+
+        '<div class="pr-cat">'+esc(p.categoria||'Geral')+'</div>'+
+        '<div class="pr-desc">'+esc(p.descricao||'—')+'</div>'+
+      '</div>'+
+      '<div class="pr-price">R$ '+Number(p.preco).toFixed(2).replace('.',',')+'</div>'+
+      '<button class="btn-secondary" style="padding:6px 12px;font-size:.78rem;white-space:nowrap" onclick="editarProduto('+p.id+')"><i class="fa-solid fa-pen"></i></button>'+
+      '<button class="btn-del" onclick="deletarProduto('+p.id+')" title="Remover"><i class="fa-solid fa-trash"></i></button>'+
+    '</div>';
+  }).join('');
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+authGuard(true, function(){
+  buildEmojiPicker();
+  renderProdutos();
+});
+</script>
+</body>
+</html>

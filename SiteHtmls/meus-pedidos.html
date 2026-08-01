@@ -1,0 +1,220 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Meus Pedidos</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../shared.css"/>
+  <style>
+    .carrinho-wrap { display:grid; grid-template-columns:1fr 340px; gap:24px; align-items:start; }
+    .carrinho-items { background:var(--white); border-radius:14px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,.06); }
+    .carrinho-items h2 { font-size:1rem; font-weight:800; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--gray-2); }
+    .ci-row { display:flex; align-items:center; gap:14px; padding:12px 0; border-bottom:1px solid var(--gray-1); }
+    .ci-emoji { width:48px; height:48px; background:var(--gray-1); border-radius:10px; display:flex; align-items:center; justify-content:center; font-size:1.6rem; flex-shrink:0; }
+    .ci-info { flex:1; }
+    .ci-name { font-size:.9rem; font-weight:700; }
+    .ci-price { font-size:.8rem; color:var(--gray-3); margin-top:2px; }
+    .ci-qty { display:flex; align-items:center; gap:8px; }
+    .qty-btn { width:28px; height:28px; border-radius:7px; background:var(--gray-1); display:flex; align-items:center; justify-content:center; font-size:.9rem; transition:all .15s; }
+    .qty-btn:hover { background:var(--red); color:#fff; }
+    .qty-num { font-weight:800; font-size:.9rem; min-width:20px; text-align:center; }
+    /* Resumo */
+    .resumo-card { background:var(--white); border-radius:14px; padding:24px; box-shadow:0 1px 4px rgba(0,0,0,.06); position:sticky; top:80px; }
+    .resumo-card h2 { font-size:1rem; font-weight:800; margin-bottom:18px; padding-bottom:12px; border-bottom:1px solid var(--gray-2); }
+    .resumo-row { display:flex; justify-content:space-between; font-size:.88rem; color:var(--gray-4); margin-bottom:8px; }
+    .resumo-row.total { font-weight:800; font-size:1rem; color:var(--dark); border-top:1px solid var(--gray-2); padding-top:12px; margin-top:8px; }
+    /* Histórico usuário */
+    .hist-section { margin-top:32px; }
+    .hist-section h3 { font-size:.95rem; font-weight:800; margin-bottom:16px; color:var(--dark); display:flex; align-items:center; gap:8px; }
+    .hist-card { background:var(--white); border-radius:12px; padding:16px; border:1.5px solid var(--gray-2); margin-bottom:10px; }
+    .hist-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
+    .hist-num { font-size:.85rem; font-weight:700; }
+    .hist-date { font-size:.75rem; color:var(--gray-3); }
+    .hist-status { padding:3px 10px; border-radius:20px; font-size:.7rem; font-weight:800; }
+    .hist-status.done { background:var(--green-bg); color:var(--green); }
+    .hist-itens { font-size:.82rem; color:var(--gray-4); margin-bottom:6px; }
+    .hist-total { font-size:.9rem; font-weight:800; color:var(--dark); }
+    @media(max-width:860px){ .carrinho-wrap{ grid-template-columns:1fr; } .resumo-card{ position:static; } }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Meus Pedidos</span><span class="topbar-sub"> — carrinho e histórico</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="carrinho-wrap">
+        <div>
+          <div class="carrinho-items">
+            <h2><i class="fa-solid fa-cart-shopping" style="color:var(--red)"></i> Carrinho</h2>
+            <div id="carrinhoList"></div>
+          </div>
+          <div class="hist-section">
+            <h3>
+              <i class="fa-solid fa-clock-rotate-left" style="color:var(--gray-3)"></i> Pedidos realizados
+              <button onclick="limparHistorico()" style="margin-left:auto;padding:6px 12px;background:#ef4444;color:#fff;border:none;border-radius:6px;font-size:.75rem;font-weight:600;cursor:pointer;">🗑️ Limpar histórico</button>
+            </h3>
+            <div id="meusHist"></div>
+          </div>
+        </div>
+        <div class="resumo-card">
+          <h2>Resumo</h2>
+          <div id="resumoItens"></div>
+          <div class="resumo-row total"><span>Total</span><span id="resumoTotal">R$ 0,00</span></div>
+          <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+            <button class="btn-primary" style="width:100%" onclick="fazerPedido()">Fazer pedido</button>
+            <button class="btn-secondary" style="width:100%" onclick="limparCarrinho()">Limpar carrinho</button>
+          </div>
+          <p style="font-size:.72rem;color:var(--gray-3);margin-top:12px;text-align:center">
+            Ao pedir, seu pedido vai direto para o admin
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="../AppJs/shared.js"></script>
+<script>
+function getCarrinho(){ 
+  var p = getParceiro();
+  if (!p || !p.email) return [];
+  var chave = 'mf_carrinho_' + p.email.replace(/[^a-zA-Z0-9]/g, '_');
+  return JSON.parse(localStorage.getItem(chave) || localStorage.getItem('mf_carrinho') || '[]'); 
+}
+
+function setCarrinho(c){ 
+  var p = getParceiro();
+  if (!p || !p.email) return;
+  var chave = 'mf_carrinho_' + p.email.replace(/[^a-zA-Z0-9]/g, '_');
+  localStorage.setItem(chave, JSON.stringify(c));
+  // Mantém compatibilidade com carrinho global
+  localStorage.setItem('mf_carrinho', JSON.stringify(c));
+}
+
+function getMeusPedidos(){ 
+  var p = getParceiro();
+  if (!p || !p.email) return [];
+  var chave = 'mf_pedidos_' + p.email.replace(/[^a-zA-Z0-9]/g, '_');
+  return JSON.parse(localStorage.getItem(chave) || '[]');
+}
+
+function renderCarrinho() {
+  var c = getCarrinho();
+  var el = document.getElementById('carrinhoList');
+  if(!c.length){
+    el.innerHTML='<div class="empty-state" style="padding:40px 0"><i class="fa-solid fa-cart-shopping"></i><h3>Carrinho vazio</h3><p>Adicione itens pelo Cardápio</p></div>';
+    document.getElementById('resumoItens').innerHTML='';
+    document.getElementById('resumoTotal').textContent='R$ 0,00';
+    return;
+  }
+  el.innerHTML = c.map(function(i,idx){
+    return '<div class="ci-row">'+
+      '<div class="ci-emoji">'+i.emoji+'</div>'+
+      '<div class="ci-info"><div class="ci-name">'+esc(i.nome)+'</div><div class="ci-price">R$ '+Number(i.preco).toFixed(2).replace('.',',')+'</div></div>'+
+      '<div class="ci-qty">'+
+        '<button class="qty-btn" onclick="changeQty('+idx+',-1)"><i class="fa-solid fa-minus"></i></button>'+
+        '<span class="qty-num">'+i.qty+'</span>'+
+        '<button class="qty-btn" onclick="changeQty('+idx+',1)"><i class="fa-solid fa-plus"></i></button>'+
+      '</div>'+
+    '</div>';
+  }).join('');
+  var sub = c.reduce(function(s,i){return s+i.preco*i.qty;},0);
+  document.getElementById('resumoItens').innerHTML = c.map(function(i){
+    return '<div class="resumo-row"><span>'+i.qty+'x '+esc(i.nome)+'</span><span>R$ '+(i.preco*i.qty).toFixed(2).replace('.',',')+'</span></div>';
+  }).join('');
+  document.getElementById('resumoTotal').textContent = 'R$ '+sub.toFixed(2).replace('.',',');
+}
+
+function changeQty(idx,delta){
+  var c=getCarrinho(); c[idx].qty+=delta;
+  if(c[idx].qty<=0) c.splice(idx,1);
+  setCarrinho(c); renderCarrinho();
+}
+
+function limparCarrinho(){
+  setCarrinho([]); renderCarrinho();
+  showToast('Carrinho limpo','info');
+}
+
+function fazerPedido(){
+  var c=getCarrinho();
+  if(!c.length){showToast('Carrinho vazio!','err');return;}
+  var p=getParceiro();
+  var pedidos=JSON.parse(localStorage.getItem('mf_pedidos')||'[]');
+  var meus=getMeusPedidos();
+  var id=Date.now();
+  var n=new Date();
+  var hora=String(n.getHours()).padStart(2,'0')+':'+String(n.getMinutes()).padStart(2,'0');
+  var total=c.reduce(function(s,i){return s+i.preco*i.qty;},0);
+  var novoPedido={
+    id:id,
+    cliente:p?p.nome:'Cliente',
+    endereco:p?(p.rua+', '+(p.numero||'')+(p.bairro?' - '+p.bairro:'')):'-',
+    itens:c.map(function(i){return{qty:i.qty,nome:i.nome};}),
+    total:total,
+    status:'new',
+    hora:hora
+  };
+  pedidos.unshift(novoPedido);
+  localStorage.setItem('mf_pedidos',JSON.stringify(pedidos));
+  meus.unshift({id:id,itens:c.map(function(i){return i.qty+'x '+i.nome;}).join(', '),total:total,hora:hora,status:'new'});
+  localStorage.setItem('mf_meus_pedidos',JSON.stringify(meus));
+  setCarrinho([]);
+  renderCarrinho();
+  renderMeusHist();
+  showToast('✅ Pedido realizado com sucesso!','ok');
+}
+
+function renderMeusHist(){
+  var m=getMeusPedidos();
+  var el=document.getElementById('meusHist');
+  if(!m.length){el.innerHTML='<p style="color:var(--gray-3);font-size:.85rem">Nenhum pedido realizado ainda.</p>';return;}
+  var labels={new:'Aguardando',prep:'Em preparo',delivery:'A caminho',done:'Entregue'};
+  el.innerHTML=m.slice(0,10).map(function(p){
+    return '<div class="hist-card">'+
+      '<div class="hist-header"><span class="hist-num">#'+String(p.id).slice(-4)+'</span><span class="hist-date">'+p.hora+'</span><span class="hist-status done">'+(labels[p.status]||p.status)+'</span></div>'+
+      '<div class="hist-itens">'+esc(p.itens)+'</div>'+
+      '<div class="hist-total">R$ '+Number(p.total).toFixed(2).replace('.',',')+'</div>'+
+    '</div>';
+  }).join('');
+}
+
+function limparHistorico() {
+  if (!confirm('Tem certeza que deseja limpar TODO o histórico de pedidos? Esta ação não pode ser desfeita.')) {
+    return;
+  }
+  var p = getParceiro();
+  if (!p || !p.email) return;
+  var chave = 'mf_pedidos_' + p.email.replace(/[^a-zA-Z0-9]/g, '_');
+  localStorage.removeItem(chave);
+  renderMeusHist();
+  showToast('🗑️ Histórico limpo', 'ok');
+}
+
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+
+authGuard(false,function(){
+  renderCarrinho();
+  renderMeusHist();
+});
+</script>
+</body>
+</html>

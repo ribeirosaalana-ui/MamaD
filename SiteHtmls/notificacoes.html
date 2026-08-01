@@ -1,0 +1,263 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Notificações</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../shared.css"/>
+  <style>
+    .notif-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+    
+    .notif-title {
+      font-size: 1.1rem;
+      font-weight: 800;
+      color: var(--dark);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .notif-actions {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .btn-action {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 10px;
+      font-size: .8rem;
+      font-weight: 600;
+      color: var(--gray-4);
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .btn-action:hover { background: var(--red-subtle); color: var(--red); border-color: var(--red); }
+    
+    .notif-list { display: flex; flex-direction: column; gap: 12px; }
+    
+    .notif-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--r-lg);
+      padding: 18px 20px;
+      display: flex;
+      align-items: flex-start;
+      gap: 14px;
+      transition: all .2s;
+      cursor: pointer;
+      box-shadow: var(--shadow-xs);
+    }
+    .notif-item:hover { box-shadow: var(--shadow-md); transform: translateX(4px); }
+    .notif-item.unread { background: var(--red-subtle); border-color: var(--red); }
+    
+    .notif-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.1rem;
+      flex-shrink: 0;
+      color: #fff;
+    }
+    .notif-icon.pedido { background: linear-gradient(135deg, #22c55e, #16a34a); }
+    .notif-icon.promo { background: linear-gradient(135deg, #f59e0b, #d97706); }
+    .notif-icon.info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+    .notif-icon.alerta { background: linear-gradient(135deg, #ef4444, #dc2626); }
+    
+    .notif-content { flex: 1; }
+    .notif-text { font-size: .9rem; font-weight: 600; color: var(--dark); margin-bottom: 4px; line-height: 1.4; }
+    .notif-desc { font-size: .8rem; color: var(--gray-3); line-height: 1.4; }
+    
+    .notif-time {
+      font-size: .72rem;
+      color: var(--gray-3);
+      white-space: nowrap;
+      align-self: center;
+    }
+    
+    .notif-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--red);
+      border-radius: 50%;
+      align-self: center;
+      flex-shrink: 0;
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--gray-3);
+    }
+    .empty-state i { font-size: 5rem; color: var(--gray-2); margin-bottom: 24px; }
+    .empty-state h3 { font-size: 1.4rem; font-weight: 800; color: var(--dark); margin-bottom: 10px; }
+  </style>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Notificações</span><span class="topbar-sub"> — fique por dentro</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+    
+    <div class="content">
+      <div class="notif-header">
+        <div class="notif-title">
+          <i class="fa-solid fa-bell"></i>
+          <span id="notifCount">0 notificações</span>
+        </div>
+        <div class="notif-actions">
+          <button class="btn-action" onclick="marcarTodasLidas()">
+            <i class="fa-solid fa-check-double"></i> Marcar todas como lidas
+          </button>
+          <button class="btn-action" onclick="limparNotifs()">
+            <i class="fa-solid fa-trash"></i> Limpar tudo
+          </button>
+        </div>
+      </div>
+      
+      <div class="notif-list" id="notifList"></div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+
+<script src="../AppJs/shared.js"></script>
+<script>
+function getNotificacoes() {
+  var p = getParceiro();
+  if (!p || !p.email) return [];
+  
+  var notifs = JSON.parse(localStorage.getItem('mf_notificacoes_' + p.email) || '[]');
+  
+  // Se não tiver notificações, cria algumas de exemplo
+  if (notifs.length === 0) {
+    notifs = [
+      { id: 1, tipo: 'pedido', icone: 'fa-check-circle', titulo: 'Pedido entregue!', desc: 'Seu pedido #1234 foi entregue com sucesso. Bom apetite! 🍔', tempo: 'Há 2 horas', lida: false },
+      { id: 2, tipo: 'promo', icone: 'fa-tags', titulo: 'Nova promoção!', desc: 'Combo Família com 30% OFF! Válido até domingo.', tempo: 'Há 5 horas', lida: false },
+      { id: 3, tipo: 'info', icone: 'fa-info-circle', titulo: 'Novo item no cardápio', desc: 'Experimente nosso novo X-Bacon Especial!', tempo: 'Ontem', lida: true },
+      { id: 4, tipo: 'pedido', icone: 'fa-motorcycle', titulo: 'Saiu para entrega', desc: 'Seu pedido #1233 está a caminho! Tempo estimado: 20 min', tempo: 'Ontem', lida: true },
+      { id: 5, tipo: 'alerta', icone: 'fa-exclamation-triangle', titulo: 'Avalie seu pedido', desc: 'Como foi sua experiência? Deixe sua avaliação!', tempo: 'Há 2 dias', lida: true }
+    ];
+    localStorage.setItem('mf_notificacoes_' + p.email, JSON.stringify(notifs));
+  }
+  
+  return notifs;
+}
+
+function salvarNotificacoes(notifs) {
+  var p = getParceiro();
+  if (!p || !p.email) return;
+  localStorage.setItem('mf_notificacoes_' + p.email, JSON.stringify(notifs));
+}
+
+function renderNotificacoes() {
+  var notifs = getNotificacoes();
+  var el = document.getElementById('notifList');
+  var countEl = document.getElementById('notifCount');
+  
+  var naoLidas = notifs.filter(function(n){ return !n.lida; }).length;
+  countEl.textContent = notifs.length + ' notificação' + (notifs.length !== 1 ? 'ões' : '') + 
+    (naoLidas > 0 ? ' (' + naoLidas + ' não lida' + (naoLidas !== 1 ? 's' : '') + ')' : '');
+  
+  if (!notifs.length) {
+    el.innerHTML = '<div class="empty-state anim-fade-up">' +
+      '<i class="fa-solid fa-bell-slash"></i>' +
+      '<h3>Nenhuma notificação</h3>' +
+      '<p>Você está em dia! Novas notificações aparecerão aqui.</p>' +
+    '</div>';
+    return;
+  }
+  
+  el.innerHTML = notifs.map(function(n){
+    var unreadClass = n.lida ? '' : ' unread';
+    var dot = n.lida ? '' : '<div class="notif-dot"></div>';
+    
+    return '<div class="notif-item' + unreadClass + ' anim-fade-up" onclick="marcarLida(' + n.id + ')">' +
+      '<div class="notif-icon ' + n.tipo + '"><i class="fa-solid ' + n.icone + '"></i></div>' +
+      '<div class="notif-content">' +
+        '<div class="notif-text">' + esc(n.titulo) + '</div>' +
+        '<div class="notif-desc">' + esc(n.desc) + '</div>' +
+      '</div>' +
+      '<div class="notif-time">' + n.tempo + '</div>' +
+      dot +
+    '</div>';
+  }).join('');
+}
+
+function marcarLida(id) {
+  var notifs = getNotificacoes();
+  var notif = notifs.find(function(n){ return n.id === id; });
+  if (notif && !notif.lida) {
+    notif.lida = true;
+    salvarNotificacoes(notifs);
+    renderNotificacoes();
+    atualizarBadges();
+  }
+}
+
+function marcarTodasLidas() {
+  var notifs = getNotificacoes();
+  var alteradas = 0;
+  notifs.forEach(function(n){
+    if (!n.lida) {
+      n.lida = true;
+      alteradas++;
+    }
+  });
+  if (alteradas > 0) {
+    salvarNotificacoes(notifs);
+    renderNotificacoes();
+    atualizarBadges();
+    showToast('✅ ' + alteradas + ' notificação' + (alteradas !== 1 ? 'ões marcadas' : ' marcada') + ' como lida', 'ok');
+  }
+}
+
+function limparNotifs() {
+  if (confirm('Deseja limpar todas as notificações?')) {
+    var p = getParceiro();
+    if (p && p.email) {
+      localStorage.removeItem('mf_notificacoes_' + p.email);
+      renderNotificacoes();
+      atualizarBadges();
+      showToast('🗑️ Notificações limpas', 'ok');
+    }
+  }
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+authGuard(false, function() {
+  renderNotificacoes();
+});
+</script>
+</body>
+</html>

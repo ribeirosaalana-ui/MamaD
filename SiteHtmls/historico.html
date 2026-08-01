@@ -1,0 +1,72 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>MamaFood — Histórico (Admin)</title>
+  <!-- PWA Meta Tags -->
+  <link rel="manifest" href="../manifest.json" />
+  <meta name="theme-color" content="#ea1d2c" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="MamaFood" />
+  <link rel="apple-touch-icon" href="../IMG_2462-removebg-preview.png" />
+  <link rel="icon" type="image/png" href="../IMG_2462-removebg-preview.png" />
+  <script src="../AppJs/devtools-protection.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="../../shared.css"/>
+</head>
+<body>
+<div class="layout">
+  <aside class="sidebar" id="sidebar"></aside>
+  <div class="main">
+    <div class="topbar">
+      <button class="menu-btn" id="menu-btn" onclick="toggleSidebar()"><i class="fa-solid fa-bars"></i></button>
+      <div><span class="topbar-title">Histórico</span><span class="topbar-sub"> — todos os pedidos</span></div>
+      <div class="topbar-right">
+        <div class="topbar-time"><i class="fa-regular fa-clock"></i><span id="clock">--:--</span></div>
+      </div>
+    </div>
+    <div class="content">
+      <div class="stats-row" style="grid-template-columns:repeat(3,1fr)">
+        <div class="stat-card green"><div class="s-label">Concluídos</div><div class="s-val" id="cnt-done">0</div><div class="s-sub">total</div></div>
+        <div class="stat-card"><div class="s-label">Faturamento</div><div class="s-val" id="cnt-total">R$0</div><div class="s-sub">total acumulado</div></div>
+        <div class="stat-card red"><div class="s-label">Cancelados</div><div class="s-val" id="cnt-cancel">0</div><div class="s-sub">total</div></div>
+      </div>
+      <div class="orders-list" id="histList"></div>
+    </div>
+  </div>
+</div>
+<div class="toast-wrap" id="toastWrap"></div>
+<script src="../AppJs/shared.js"></script>
+<script>
+function renderHist(){
+  var pedidos=JSON.parse(localStorage.getItem('mf_pedidos')||'[]');
+  var done=pedidos.filter(function(p){return p.status==='done';});
+  var total=done.reduce(function(s,p){return s+Number(p.total);},0);
+  document.getElementById('cnt-done').textContent=done.length;
+  document.getElementById('cnt-total').textContent='R$'+total.toFixed(0);
+  document.getElementById('cnt-cancel').textContent='0';
+  var el=document.getElementById('histList');
+  if(!done.length){
+    el.innerHTML='<div class="empty-state"><i class="fa-solid fa-clock-rotate-left"></i><h3>Nenhum pedido concluído ainda</h3><p>Os pedidos entregues aparecem aqui</p></div>';
+    return;
+  }
+  el.innerHTML=done.map(function(p){
+    var itens=p.itens.map(function(i){return'<div class="oc-item-row"><span class="qty">'+i.qty+'x</span><span>'+i.nome+'</span></div>';}).join('');
+    return'<div class="order-card done">'+
+      '<div class="oc-header"><div><div class="oc-num">#'+String(p.id).toString().slice(-4).padStart(4,'0')+'</div><div class="oc-name">'+p.cliente+'</div><div class="oc-addr"><i class="fa-solid fa-location-dot" style="color:var(--red);font-size:.7rem"></i> '+p.endereco+'</div></div>'+
+      '<div class="oc-time"><i class="fa-regular fa-clock"></i> '+p.hora+'</div>'+
+      '<span class="oc-status done">Entregue</span></div>'+
+      '<div class="oc-body"><div class="oc-items">'+itens+'</div>'+
+      '<div class="oc-total"><span class="label">Total</span>R$ '+Number(p.total).toFixed(2).replace('.',',')+'</div></div></div>';
+  }).join('');
+}
+
+authGuard(true,function(){
+  renderHist();
+});
+</script>
+</body>
+</html>
