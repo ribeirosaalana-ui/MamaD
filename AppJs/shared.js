@@ -2,9 +2,8 @@
 // shared.js — MamaFood v2
 // ============================================================
 
-// ── Proteção básica (não bloqueia thread) ─────────────────────────
+// ── Proteção básica ───────────────────────────────────────────────
 (function(){
-  // Não aplica proteção em dispositivos móveis
   var isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent) ||
                  navigator.maxTouchPoints > 1 ||
                  window.innerWidth <= 768;
@@ -17,23 +16,6 @@
       if (e.ctrlKey && e.shiftKey && 'ijcIJC'.indexOf(k) !== -1) { e.preventDefault(); return false; }
       if (e.ctrlKey && 'uUsSpP'.indexOf(k) !== -1) { e.preventDefault(); return false; }
     }, true);
-    document.addEventListener('selectstart', function(e){
-      if (!['INPUT','TEXTAREA','SELECT'].includes(e.target.tagName)) e.preventDefault();
-    });
-    var _s = document.createElement('style');
-    _s.textContent = '*{-webkit-user-select:none!important;user-select:none!important}input,textarea,select{-webkit-user-select:text!important;user-select:text!important}';
-    (document.head || document.documentElement).appendChild(_s);
-    // Detecta DevTools por diferença de tamanho (só desktop)
-    var _dtOpen = false;
-    setInterval(function(){
-      if (navigator.maxTouchPoints > 1) return; // mobile conectou teclado, ignora
-      var dw = window.outerWidth  - window.innerWidth  > 250;
-      var dh = window.outerHeight - window.innerHeight > 250;
-      if ((dw || dh) && !_dtOpen) {
-        _dtOpen = true;
-        document.documentElement.innerHTML = '<html><head></head><body style="background:#111;display:flex;align-items:center;justify-content:center;height:100vh"><p style="color:#ff4444;font-family:monospace;font-size:14px">Acesso n\u00e3o autorizado.</p></body></html>';
-      } else if (!dw && !dh) { _dtOpen = false; }
-    }, 1500);
   }
 })();
 
