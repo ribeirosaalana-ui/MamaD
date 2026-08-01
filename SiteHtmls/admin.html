@@ -482,29 +482,8 @@ function apagarNotificacao(email, notifId) {
 
 function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/'/g,'&#39;').replace(/"/g,'&quot;'); }
 
-// DEBUG: Verificar carregamento
-console.log('🔍 ADMIN.HTML: Script carregado');
-console.log('🔍 buildSidebar existe?', typeof buildSidebar);
-console.log('🔍 authGuard existe?', typeof authGuard);
-
-// Força construção da sidebar (fallback caso authGuard falhe)
-setTimeout(function() {
-  console.log('⏰ setTimeout executado');
-  if (typeof buildSidebar === 'function') {
-    console.log('✅ buildSidebar encontrado, chamando...');
-    buildSidebar('admin.html');
-    if (typeof startClock === 'function') startClock('clock');
-  } else {
-    console.error('❌ buildSidebar não encontrado! Verifique se shared.js está carregando.');
-  }
-}, 100);
-
 authGuard(true, function() {
-  console.log('✅ Admin autenticado!');
-  console.log('🔍 Chamando buildSidebar novamente dentro do authGuard...');
-  if (typeof buildSidebar === 'function') {
-    buildSidebar('admin.html');
-  }
+  initAdmin();
 });
 </script>
 </body>
