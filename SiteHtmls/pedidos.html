@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
@@ -17,8 +17,14 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="stylesheet" href="../shared.css"/>
   <style>
-    /* Fix sidebar */
+    /* Fix sidebar - force visibility */
     .sidebar { background: #0f1120 !important; }
+    .sidebar * { visibility: visible !important; opacity: 1 !important; }
+    .sidebar a, .sidebar .sb-item { color: rgba(255,255,255,0.7) !important; }
+    .sidebar .sb-item.active { background: rgba(255,255,255,0.1) !important; color: #fff !important; }
+    .sidebar .sb-logo-name { color: #fff !important; }
+    .sidebar .sb-store-name { color: #fff !important; }
+    .sidebar .sb-section { color: rgba(255,255,255,0.4) !important; }
     
     /* ── Stat card icons ── */
     .stat-card .s-icon {
