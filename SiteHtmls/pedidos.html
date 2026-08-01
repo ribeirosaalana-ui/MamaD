@@ -518,30 +518,7 @@ function imprimirPedido(pedido) {
 // Init — authGuard garante que só admin entra
 // ═══════════════════════════════════════════════════════════
 
-// DEBUG: Verificar carregamento
-console.log('🔍 PEDIDOS.HTML: Script carregado');
-console.log('🔍 buildSidebar existe?', typeof buildSidebar);
-console.log('🔍 authGuard existe?', typeof authGuard);
-
-// Força construção da sidebar (fallback caso authGuard falhe)
-setTimeout(function() {
-  console.log('⏰ setTimeout executado');
-  if (typeof buildSidebar === 'function') {
-    console.log('✅ buildSidebar encontrado, chamando...');
-    buildSidebar('pedidos.html');
-    if (typeof startClock === 'function') startClock('clock');
-  } else {
-    console.error('❌ buildSidebar não encontrado! Verifique se shared.js está carregando.');
-  }
-}, 100);
-
 authGuard(true, function() {
-  console.log('✅ Admin autenticado em pedidos.html!');
-  console.log('🔍 Chamando buildSidebar novamente dentro do authGuard...');
-  if (typeof buildSidebar === 'function') {
-    buildSidebar('pedidos.html');
-  }
-  
   renderOrders();
 
   // Polling a cada 3s — detecta novos pedidos e atualiza badge/lista
