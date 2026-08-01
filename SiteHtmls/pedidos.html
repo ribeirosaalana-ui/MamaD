@@ -576,6 +576,25 @@ authGuard(true, function() {
     }
   }, 3000);
 });
+
+// Atualiza nome/email na sidebar estática
+(function() {
+  var p = JSON.parse(localStorage.getItem('mf_parceiro') || 'null');
+  if (p) {
+    var nomeEl = document.getElementById('sb-nome');
+    var emailEl = document.getElementById('sb-email');
+    var avatarEl = document.getElementById('sb-avatar');
+    if (nomeEl) nomeEl.textContent = p.nome || p.email || 'Admin';
+    if (emailEl) emailEl.textContent = p.email || '';
+    if (avatarEl && p.foto) {
+      avatarEl.innerHTML = '<img src="'+p.foto+'" style="width:100%;height:100%;object-fit:cover;border-radius:10px"/>';
+    } else if (avatarEl && (p.nome || p.email)) {
+      var src = p.nome || p.email;
+      avatarEl.textContent = src.charAt(0).toUpperCase();
+    }
+  }
+  startClock('clock');
+})();
 </script>
 </body>
 </html>
